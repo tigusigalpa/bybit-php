@@ -157,6 +157,21 @@ class BybitClient
         return $this->request('POST', '/v5/order/cancel', $params);
     }
 
+    public function amendOrder(array $params): array
+    {
+        return $this->request('POST', '/v5/order/amend', $params);
+    }
+
+    public function cancelAllOrders(array $params): array
+    {
+        return $this->request('POST', '/v5/order/cancel-all', $params);
+    }
+
+    public function getHistoryOrders(array $params): array
+    {
+        return $this->request('GET', '/v5/order/history', $params);
+    }
+
     public function getWalletBalance(array $params): array
     {
         return $this->request('GET', '/v5/account/wallet-balance', $params);
@@ -165,6 +180,16 @@ class BybitClient
     public function getPositions(array $params): array
     {
         return $this->request('GET', '/v5/position/list', $params);
+    }
+
+    public function switchPositionMode(array $params): array
+    {
+        return $this->request('POST', '/v5/position/switch-mode', $params);
+    }
+
+    public function setTradingStop(array $params): array
+    {
+        return $this->request('POST', '/v5/position/trading-stop', $params);
     }
 
     public function setLeverage(string $category, string $symbol, float $leverage, ?string $side = null): array

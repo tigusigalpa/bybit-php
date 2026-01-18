@@ -9,7 +9,8 @@
   "require": {
     "php": "^7.4|^8.0|^8.1|^8.2",
     "guzzlehttp/guzzle": "^7.8",
-    "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0"
+    "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0",
+    "textalk/websocket": "^1.6"
   },
   "autoload": {
     "psr-4": {
@@ -22,7 +23,8 @@
         "Tigusigalpa\\ByBit\\BybitServiceProvider"
       ],
       "aliases": {
-        "Bybit": "Tigusigalpa\\ByBit\\Facades\\Bybit"
+        "Bybit": "Tigusigalpa\\ByBit\\Facades\\Bybit",
+        "BybitWebSocket": "Tigusigalpa\\ByBit\\Facades\\BybitWebSocket"
       }
     }
   },

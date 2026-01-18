@@ -1,114 +1,221 @@
-# Bybit PHP — клиент V5 API с интеграцией Laravel 8–12
+<div align="center">
+
+# 🚀 Bybit PHP SDK
+
+### Профессиональный клиент V5 API для PHP и Laravel
+
+[![PHP Version](https://img.shields.io/badge/PHP-7.4%20%7C%208.0%20%7C%208.1%20%7C%208.2-blue.svg)](https://php.net)
+[![Laravel](https://img.shields.io/badge/Laravel-8%20%7C%209%20%7C%2010%20%7C%2011%20%7C%2012-red.svg)](https://laravel.com)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![WebSocket](https://img.shields.io/badge/WebSocket-Поддерживается-brightgreen.svg)](https://bybit-exchange.github.io/docs/v5/ws/connect)
 
 ![ByBit PHP SDK](https://github.com/user-attachments/assets/cd31c2a6-5853-4287-a79b-2fb16ca3fcaa)
 
-**🌐 Язык:** Русский | [English](README.md)
+**🌐 Язык:** [English](README.md) | [Русский](#)
 
-Лёгкая библиотека для работы с Bybit V5 API в проектах на чистом PHP и Laravel 8–12. Поддерживает тестовую торговлю (Testnet), выбор региональных эндпоинтов для Mainnet и встроенную авторизацию с подписью запросов (HMAC-SHA256 или RSA-SHA256).
+*Мощная, легковесная библиотека для бесшовной интеграции с Bybit V5 API в проектах на чистом PHP и Laravel.*
 
-## Возможности
-- Клиент `BybitClient` с универсальным методом `request()` для `GET/POST`
-- Подпись запросов по правилам Bybit V5 (`X-BAPI-*` заголовки)
-- Выбор окружения: Testnet или Mainnet с региональными эндпоинтами
-- Интеграция с Laravel: сервис-провайдер, фасад, публикуемый конфиг
-- Настраиваемое `recv_window` и тип подписи (`hmac`/`rsa`)
+[Возможности](#-возможности) • [Установка](#-установка) • [Быстрый старт](#-быстрый-старт) • [Документация](#-api-методы) • [WebSocket](#-websocket-потоки) • [Примеры](#-примеры)
 
-## Требования
-- PHP `^7.4|^8.0|^8.1|^8.2`
-- Laravel `8–12` (для интеграции в фреймворк)
+</div>
 
-## Установка (локальный путь в монорепозитории)
-1. Добавьте репозиторий типа `path` в корневой `composer.json` вашего проекта:
-   ```json
-   {
-     "repositories": [
-       { "type": "path", "url": "public_html/packages/bybit-php" }
-     ]
-   }
-   ```
+---
+
+## 📋 Содержание
+
+- [✨ Возможности](#-возможности)
+- [📦 Установка](#-установка)
+  - [Чистый PHP](#чистый-php-без-laravel)
+  - [Интеграция с Laravel](#интеграция-с-laravel)
+- [⚙️ Конфигурация](#️-конфигурация)
+- [🚀 Быстрый старт](#-быстрый-старт)
+  - [Использование на чистом PHP](#использование-на-чистом-php)
+  - [Использование с Laravel](#использование-с-laravel)
+- [📚 API Методы](#-api-методы)
+  - [Рыночные данные](#рыночные-данные)
+  - [Управление ордерами](#управление-ордерами)
+  - [Управление позициями](#управление-позициями)
+  - [Аккаунт и кошелёк](#аккаунт-и-кошелёк)
+- [🌐 WebSocket потоки](#-websocket-потоки)
+  - [Публичные потоки](#публичные-потоки)
+  - [Приватные потоки](#приватные-потоки)
+- [💡 Продвинутое использование](#-продвинутое-использование)
+- [🌍 Региональные эндпоинты](#-региональные-эндпоинты)
+- [🔐 Аутентификация](#-аутентификация)
+- [📖 Примеры](#-примеры)
+- [🤝 Вклад в проект](#-вклад-в-проект)
+- [📄 Лицензия](#-лицензия)
+
+---
+
+## ✨ Возможности
+
+<table>
+<tr>
+<td width="50%">
+
+### 🎯 Основные возможности
+- ✅ Полная поддержка Bybit V5 API
+- ✅ Подпись HMAC-SHA256 и RSA-SHA256
+- ✅ Окружения Testnet и Mainnet
+- ✅ Выбор региональных эндпоинтов
+- ✅ Совместимость с PHP и Laravel
+- ✅ Типобезопасная обработка запросов
+
+</td>
+<td width="50%">
+
+### ⚡ Продвинутые возможности
+- ✅ WebSocket потоки в реальном времени
+- ✅ Автоматическое переподключение
+- ✅ Множественные подписки на топики
+- ✅ Настраиваемый recv_window
+- ✅ Комплексная обработка ошибок
+- ✅ Фасады Laravel и DI поддержка
+
+</td>
+</tr>
+</table>
+
+---
+
+## 📦 Установка
+
+### Чистый PHP (без Laravel)
+
+```bash
+composer require tigusigalpa/bybit-php
+```
+
+### Интеграция с Laravel
+
+**Для локального монорепозитория:**
+
+1. Добавьте репозиторий в `composer.json`:
+```json
+{
+  "repositories": [
+    { "type": "path", "url": "public_html/packages/bybit-php" }
+  ]
+}
+```
+
 2. Установите пакет:
-   ```bash
-   composer require tigusigalpa/bybit-php:* --prefer-source
-   ```
+```bash
+composer require tigusigalpa/bybit-php:* --prefer-source
+```
 
-## Интеграция с Laravel
-- Пакет использует авто‑обнаружение провайдера и алиаса фасада.
-- Опубликуйте конфиг:
-  ```bash
-  php artisan vendor:publish --tag=bybit-config
-  ```
+3. Опубликуйте конфигурацию:
+```bash
+php artisan vendor:publish --tag=bybit-config
+```
 
-## Конфигурация
-Настройки находятся в `config/bybit.php` и управляются через `.env`:
-- `BYBIT_API_KEY` — публичный ключ API
-- `BYBIT_API_SECRET` — секретный ключ (для HMAC)
-- `BYBIT_TESTNET` — `true/false` для включения тестовой среды
-- `BYBIT_REGION` — `global|nl|tr|kz|ge|ae`
-- `BYBIT_RECV_WINDOW` — окно приёма запроса в мс (по умолчанию `5000`)
-- `BYBIT_SIGNATURE` — `hmac` или `rsa` (по умолчанию `hmac`)
-- `BYBIT_RSA_PRIVATE_KEY` — приватный RSA ключ (PEM) для подписи RSA
+> 💡 **Примечание:** Пакет использует автообнаружение Laravel для регистрации провайдера и фасада.
 
-Пример `.env`:
+---
+
+## ⚙️ Конфигурация
+
+### Переменные окружения
+
+Создайте или обновите файл `.env`:
+
 ```env
-BYBIT_API_KEY=your_api_key
-BYBIT_API_SECRET=your_api_secret
+BYBIT_API_KEY=ваш_api_ключ
+BYBIT_API_SECRET=ваш_секретный_ключ
 BYBIT_TESTNET=true
 BYBIT_REGION=global
 BYBIT_RECV_WINDOW=5000
 BYBIT_SIGNATURE=hmac
-# Для RSA (если используется):
+
+# Для RSA подписи (опционально):
 # BYBIT_SIGNATURE=rsa
 # BYBIT_RSA_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 ```
 
-## Эндпоинты и регионы
-- Testnet: `https://api-testnet.bybit.com`
-- Mainnet по регионам:
-  - Netherlands (`nl`): `https://api.bybit.nl`
-  - Turkey (`tr`): `https://api.bybit-tr.com`
-  - Kazakhstan (`kz`): `https://api.bybit.kz`
-  - Georgia (`ge`): `https://api.bybitgeorgia.ge`
-  - United Arab Emirates (`ae`): `https://api.bybit.ae`
-- Иначе: `https://api.bybit.com` (доступен также `https://api.bytick.com`)
+### Параметры конфигурации
 
-## Аутентификация и подпись
-Правила формирования подписи соответствуют руководству Bybit V5:
-- Для `GET`: `timestamp + api_key + recv_window + queryString`
-- Для `POST`: `timestamp + api_key + recv_window + jsonBodyString`
-- `HMAC-SHA256` → hex в нижнем регистре
-- `RSA-SHA256` → base64
+| Параметр | Тип | По умолчанию | Описание |
+|----------|-----|--------------|----------|
+| `BYBIT_API_KEY` | string | - | Публичный ключ API Bybit |
+| `BYBIT_API_SECRET` | string | - | Секретный ключ API Bybit |
+| `BYBIT_TESTNET` | boolean | `false` | Включить тестовое окружение |
+| `BYBIT_REGION` | string | `global` | Региональный эндпоинт (`global`, `nl`, `tr`, `kz`, `ge`, `ae`) |
+| `BYBIT_RECV_WINDOW` | integer | `5000` | Окно приёма запроса (мс) |
+| `BYBIT_SIGNATURE` | string | `hmac` | Тип подписи (`hmac` или `rsa`) |
+| `BYBIT_RSA_PRIVATE_KEY` | string | `null` | RSA приватный ключ (формат PEM) |
 
-Заголовки запроса:
-- `X-BAPI-API-KEY`
-- `X-BAPI-TIMESTAMP` (UTC, миллисекунды)
-- `X-BAPI-RECV-WINDOW` (мс)
-- `X-BAPI-SIGN`
- - `X-BAPI-SIGN-TYPE: 2` для HMAC
- - `Content-Type: application/json` для `POST`
+---
 
-Документация: https://bybit-exchange.github.io/docs/v5/guide
+## 🚀 Быстрый старт
 
-## Использование
-Через фасад:
+### Использование на чистом PHP
+
+```php
+<?php
+require_once 'vendor/autoload.php';
+
+use Tigusigalpa\ByBit\BybitClient;
+
+// Инициализация клиента
+$client = new BybitClient(
+    apiKey: 'ваш_api_ключ',
+    apiSecret: 'ваш_секретный_ключ',
+    testnet: true,
+    region: 'global',
+    recvWindow: 5000,
+    signature: 'hmac'
+);
+
+// Получить время сервера
+$serverTime = $client->getServerTime();
+echo "Время сервера: " . json_encode($serverTime) . "\n";
+
+// Получить рыночные тикеры
+$tickers = $client->getTickers([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT'
+]);
+print_r($tickers);
+
+// Разместить лимитный ордер
+$order = $client->createOrder([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'side' => 'Buy',
+    'orderType' => 'Limit',
+    'qty' => '0.01',
+    'price' => '30000',
+    'timeInForce' => 'GTC'
+]);
+print_r($order);
+
+// Получить позиции
+$positions = $client->getPositions([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT'
+]);
+print_r($positions);
+```
+
+### Использование с Laravel
+
+**Через фасад:**
+
 ```php
 use Tigusigalpa\ByBit\Facades\Bybit;
 
-$response = Bybit::request('GET', '/v5/order/realtime', [
-    'category' => 'option',
-    'symbol' => 'BTC-29JUL22-25000-C'
+// Получить время сервера
+$time = Bybit::getServerTime();
+
+// Получить рыночные данные
+$tickers = Bybit::getTickers([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT'
 ]);
-```
 
-Через DI (рекомендуется для тестирования):
-```php
-use Tigusigalpa\ByBit\BybitClient;
-
-public function __construct(BybitClient $bybit)
-{
-    $this->bybit = $bybit;
-}
-
-$data = $this->bybit->request('POST', '/v5/order/create', [
+// Разместить ордер
+$order = Bybit::createOrder([
     'category' => 'linear',
     'symbol' => 'BTCUSDT',
     'side' => 'Buy',
@@ -118,42 +225,54 @@ $data = $this->bybit->request('POST', '/v5/order/create', [
 ]);
 ```
 
-## Отладка и стабильность
-- Синхронизируйте время сервера (NTP), так как окно валидации: `server_time - recv_window <= timestamp < server_time + 1000`.
-- При сетевых проблемах можно добавлять `cdn-request-id` (уникальный) в заголовки — для диагностики CDN.
-- При ошибках подписи проверьте сортировку параметров и формат тела для `POST` (`JSON_UNESCAPED_SLASHES`).
-
-## Версии и изменения
-- Текущая версия: `0.1.0`
-- История изменений: `CHANGELOG.md`
-
-## Автор и лицензия
-- Автор: Igor Sazonov (`tigusigalpa`)
-- Email: `sovletig@gmail.com`
-- GitHub: https://github.com/tigusigalpa/bybit-php
-- Лицензия: MIT
-
-## План развития
-- Удобные методы-обёртки для популярных эндпоинтов (`server-time`, `orders`, `positions`)
-- Ретраи и обработка rate-limit
-- Логирование и трейсинг запросов
-
-## Методы-обёртки
+**Через внедрение зависимостей:**
 
 ```php
-use Tigusigalpa\ByBit\Facades\Bybit;
+use Tigusigalpa\ByBit\BybitClient;
 
-// Время сервера
-$time = Bybit::getServerTime();
+class TradingController extends Controller
+{
+    public function __construct(
+        private BybitClient $bybit
+    ) {}
+    
+    public function placeOrder()
+    {
+        $order = $this->bybit->createOrder([
+            'category' => 'linear',
+            'symbol' => 'BTCUSDT',
+            'side' => 'Buy',
+            'orderType' => 'Market',
+            'qty' => '0.01'
+        ]);
+        
+        return response()->json($order);
+    }
+}
+```
 
-// Тикеры рынка
-$tickers = Bybit::getTickers([
+---
+
+## 📚 API Методы
+
+### Рыночные данные
+
+```php
+// Получить время сервера
+$time = $client->getServerTime();
+
+// Получить рыночные тикеры
+$tickers = $client->getTickers([
     'category' => 'linear',
     'symbol' => 'BTCUSDT'
 ]);
+```
 
-// Создание ордера
-$order = Bybit::createOrder([
+### Управление ордерами
+
+```php
+// Создать ордер
+$order = $client->createOrder([
     'category' => 'linear',
     'symbol' => 'BTCUSDT',
     'side' => 'Buy',
@@ -163,38 +282,211 @@ $order = Bybit::createOrder([
     'timeInForce' => 'GTC'
 ]);
 
-// Открытые ордера
-$open = Bybit::getOpenOrders([
+// Получить открытые ордера
+$openOrders = $client->getOpenOrders([
     'category' => 'linear',
     'symbol' => 'BTCUSDT'
 ]);
 
-// Отмена ордера
-$cancel = Bybit::cancelOrder([
+// Изменить ордер
+$amended = $client->amendOrder([
     'category' => 'linear',
     'symbol' => 'BTCUSDT',
-    'orderId' => 'xxxxxxxxxxxxxxxxxxxx'
+    'orderId' => 'id_ордера',
+    'qty' => '0.02',
+    'price' => '31000'
 ]);
 
-// Баланс кошелька
-$balance = Bybit::getWalletBalance([
+// Отменить ордер
+$cancelled = $client->cancelOrder([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'orderId' => 'id_ордера'
+]);
+
+// Отменить все ордера
+$cancelledAll = $client->cancelAllOrders([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT'
+]);
+
+// Получить историю ордеров
+$history = $client->getHistoryOrders([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'limit' => 50
+]);
+```
+
+### Управление позициями
+
+```php
+// Получить позиции
+$positions = $client->getPositions([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT'
+]);
+
+// Установить плечо
+$client->setLeverage('linear', 'BTCUSDT', 10);
+
+// Переключить режим позиции (односторонний или хедж)
+$client->switchPositionMode([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'mode' => 0 // 0: односторонний, 3: хедж
+]);
+
+// Установить торговые стопы (TP/SL)
+$client->setTradingStop([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'positionIdx' => 0,
+    'takeProfit' => '35000',
+    'stopLoss' => '28000'
+]);
+```
+
+### Аккаунт и кошелёк
+
+```php
+// Получить баланс кошелька
+$balance = $client->getWalletBalance([
     'accountType' => 'UNIFIED',
     'coin' => 'USDT'
 ]);
 
-// Позиции
-$positions = Bybit::getPositions([
-    'category' => 'linear',
-    'symbol' => 'BTCUSDT'
-]);
+// Рассчитать торговую комиссию
+$fee = $client->computeFee('spot', 1000.0, 'Non-VIP', 'taker');
 ```
 
-### Универсальный метод создания ордера
+---
+
+## 🌐 WebSocket потоки
+
+### Публичные потоки
+
+**Чистый PHP WebSocket:**
 
 ```php
-use Tigusigalpa\ByBit\Facades\Bybit;
+use Tigusigalpa\ByBit\BybitWebSocket;
 
-$resp = Bybit::placeOrder(
+// Создать WebSocket экземпляр
+$ws = new BybitWebSocket(
+    apiKey: null,
+    apiSecret: null,
+    testnet: false,
+    region: 'global',
+    isPrivate: false
+);
+
+// Подписаться на стакан
+$ws->subscribeOrderbook('BTCUSDT', 50);
+
+// Подписаться на сделки
+$ws->subscribeTrade('BTCUSDT');
+
+// Подписаться на тикер
+$ws->subscribeTicker('BTCUSDT');
+
+// Подписаться на свечи
+$ws->subscribeKline('BTCUSDT', '1'); // 1м свечи
+
+// Обработка сообщений
+$ws->onMessage(function($data) {
+    if (isset($data['topic'])) {
+        echo "Топик: {$data['topic']}\n";
+        print_r($data['data']);
+    }
+});
+
+// Начать прослушивание (блокирующее)
+$ws->listen();
+```
+
+### Приватные потоки
+
+**Аутентифицированный WebSocket для обновлений аккаунта:**
+
+```php
+use Tigusigalpa\ByBit\BybitWebSocket;
+
+$ws = new BybitWebSocket(
+    apiKey: 'ваш_api_ключ',
+    apiSecret: 'ваш_секретный_ключ',
+    testnet: false,
+    region: 'global',
+    isPrivate: true
+);
+
+// Подписаться на обновления позиций
+$ws->subscribePosition();
+
+// Подписаться на обновления ордеров
+$ws->subscribeOrder();
+
+// Подписаться на обновления исполнений
+$ws->subscribeExecution();
+
+// Подписаться на обновления кошелька
+$ws->subscribeWallet();
+
+$ws->onMessage(function($data) {
+    match($data['topic'] ?? null) {
+        'position' => handlePositionUpdate($data),
+        'order' => handleOrderUpdate($data),
+        'execution' => handleExecutionUpdate($data),
+        'wallet' => handleWalletUpdate($data),
+        default => null
+    };
+});
+
+$ws->listen();
+```
+
+**Laravel фоновая команда:**
+
+```php
+// app/Console/Commands/BybitWebSocketListener.php
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Tigusigalpa\ByBit\BybitWebSocket;
+
+class BybitWebSocketListener extends Command
+{
+    protected $signature = 'bybit:listen {symbol=BTCUSDT}';
+    protected $description = 'Прослушивание WebSocket потоков Bybit';
+
+    public function handle()
+    {
+        $symbol = $this->argument('symbol');
+        $ws = app(BybitWebSocket::class);
+        
+        $ws->subscribeOrderbook($symbol, 50);
+        $ws->subscribeTrade($symbol);
+        
+        $ws->onMessage(fn($data) => 
+            $this->info(json_encode($data, JSON_PRETTY_PRINT))
+        );
+        
+        $this->info("🚀 WebSocket слушатель запущен для {$symbol}...");
+        $ws->listen();
+    }
+}
+```
+
+Запуск: `php artisan bybit:listen BTCUSDT`
+
+---
+
+## 💡 Продвинутое использование
+
+### Универсальное размещение ордеров
+
+```php
+// Спотовый лимитный ордер
+$order = $client->placeOrder(
     type: 'spot',
     symbol: 'BTCUSDT',
     execution: 'limit',
@@ -205,82 +497,183 @@ $resp = Bybit::placeOrder(
     slTp: null
 );
 
-$resp = Bybit::placeOrder(
+// Деривативный рыночный ордер с плечом
+$order = $client->placeOrder(
     type: 'derivatives',
     symbol: 'BTCUSDT',
     execution: 'market',
     price: null,
     side: 'Buy',
-    leverage: 5,
+    leverage: 10,
     size: 100, // маржа в USDT
     slTp: [
         'type' => 'percent',
-        'takeProfit' => 0.02,
-        'stopLoss' => 0.01
+        'takeProfit' => 0.02, // 2%
+        'stopLoss' => 0.01    // 1%
     ]
 );
 
-$resp = Bybit::placeOrder(
+// Триггерный ордер с абсолютным TP/SL
+$order = $client->placeOrder(
     type: 'derivatives',
     symbol: 'BTCUSDT',
     execution: 'trigger',
-    price: 29500.0, // triggerPrice
+    price: 29500.0,
     side: 'Buy',
-    leverage: 3,
-    size: 150, // маржа в USDT
+    leverage: 5,
+    size: 150,
     slTp: [
         'type' => 'absolute',
-        'takeProfit' => 30500.0,
+        'takeProfit' => 31000.0,
         'stopLoss' => 29000.0
     ],
-    extra: [
-        // дополнительные поля для гибкости
-        'timeInForce' => 'GTC'
-    ]
+    extra: ['timeInForce' => 'GTC']
 );
-```
-
-Параметры:
-- `type`: `spot` или `derivatives`
-- `symbol`: код инструмента, например `BTCUSDT`
-- `execution`: `market` | `limit` | `trigger`
-- `price`: цена входа для `limit`, либо `triggerPrice` для `trigger`; для `market` — `null`
-- `side`: `Buy`/`Sell`; для `spot` по умолчанию `Buy`
-- `leverage`: плечо (только для `derivatives`); при задании устанавливается через `/v5/position/set-leverage`
-- `size`: для `spot` — количество; для `derivatives` — сумма маржи в котируемой валюте (например, USDT)
-- `slTp`: `['type'=>'absolute'|'percent','takeProfit'=>..., 'stopLoss'=>...]` — для деривативов; проценты считаются от цены входа
-- `extra`: ассоциативный массив дополнительных параметров (например, `timeInForce`, `orderLinkId`)
-
-Примечания:
-- Для деривативов количество вычисляется как `qty = margin * leverage / price`. Для `market` цена берётся из `/v5/market/tickers`.
-- Для `trigger` направленность триггера выставляется по `side`: `Buy → triggerDirection=1`, `Sell → triggerDirection=2`.
-
-Через DI интерфейс:
-```php
-use Tigusigalpa\ByBit\BybitClient;
-
-public function __construct(BybitClient $bybit)
-{
-    $this->bybit = $bybit;
-}
-
-$serverTime = $this->bybit->getServerTime();
-$order = $this->bybit->createOrder([...]);
 ```
 
 ### Расчёт торговой комиссии
 
 ```php
-use Tigusigalpa\ByBit\Facades\Bybit;
+// Комиссия на споте
+$feeSpot = $client->computeFee('spot', 1000.0, 'Non-VIP', 'taker');
+// Результат: 1.0 USDT (0.1%)
 
-// Для Spot (по умолчанию Non-VIP, taker)
-$feeSpot = Bybit::computeFee('spot', 1000.0, 'Non-VIP', 'taker'); // 1000 * 0.001 = 1.0
-
-// Для деривативов: объём = маржа * плечо
+// Деривативы с плечом
 $margin = 100.0;
-$leverage = 5.0;
-$volume = $margin * $leverage; // 500
-$feeDeriv = Bybit::computeFee('derivatives', $volume, 'Non-VIP', 'taker');
+$leverage = 10.0;
+$volume = $margin * $leverage; // 1000
+$feeDeriv = $client->computeFee('derivatives', $volume, 'VIP1', 'maker');
 ```
 
-Таблица базовых ставок задаётся в конфиге `config/bybit.php` в секции `fees`. Можно изменять уровни и ставки под актуальные данные аккаунта или использовать запросы Bybit для получения точной ставки аккаунта.
+---
+
+## 🌍 Региональные эндпоинты
+
+| Регион | Код | Эндпоинт |
+|--------|-----|----------|
+| 🌐 Глобальный | `global` | `https://api.bybit.com` |
+| 🇳🇱 Нидерланды | `nl` | `https://api.bybit.nl` |
+| 🇹🇷 Турция | `tr` | `https://api.bybit-tr.com` |
+| 🇰🇿 Казахстан | `kz` | `https://api.bybit.kz` |
+| 🇬🇪 Грузия | `ge` | `https://api.bybitgeorgia.ge` |
+| 🇦🇪 ОАЭ | `ae` | `https://api.bybit.ae` |
+| 🧪 Testnet | - | `https://api-testnet.bybit.com` |
+
+---
+
+## 🔐 Аутентификация
+
+### Генерация подписи
+
+Bybit V5 API использует HMAC-SHA256 или RSA-SHA256 для подписи запросов:
+
+**Для GET запросов:**
+```
+signature_payload = timestamp + api_key + recv_window + queryString
+```
+
+**Для POST запросов:**
+```
+signature_payload = timestamp + api_key + recv_window + jsonBody
+```
+
+**HMAC-SHA256:** Возвращает hex в нижнем регистре  
+**RSA-SHA256:** Возвращает base64
+
+### Необходимые заголовки
+
+```
+X-BAPI-API-KEY: ваш_api_ключ
+X-BAPI-TIMESTAMP: 1234567890000
+X-BAPI-RECV-WINDOW: 5000
+X-BAPI-SIGN: сгенерированная_подпись
+X-BAPI-SIGN-TYPE: 2 (для HMAC)
+Content-Type: application/json (для POST)
+```
+
+> 📖 **Официальная документация:** https://bybit-exchange.github.io/docs/v5/guide
+
+---
+
+## 📖 Примеры
+
+### Полный пример торгового бота
+
+```php
+<?php
+require 'vendor/autoload.php';
+
+use Tigusigalpa\ByBit\BybitClient;
+
+$client = new BybitClient(
+    apiKey: getenv('BYBIT_API_KEY'),
+    apiSecret: getenv('BYBIT_API_SECRET'),
+    testnet: true
+);
+
+// Проверить баланс
+$balance = $client->getWalletBalance([
+    'accountType' => 'UNIFIED',
+    'coin' => 'USDT'
+]);
+
+echo "Баланс: {$balance['result']['list'][0]['totalWalletBalance']} USDT\n";
+
+// Получить текущую цену
+$ticker = $client->getTickers([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT'
+]);
+
+$currentPrice = $ticker['result']['list'][0]['lastPrice'];
+echo "Цена BTC: \${$currentPrice}\n";
+
+// Разместить ордер
+$order = $client->createOrder([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'side' => 'Buy',
+    'orderType' => 'Limit',
+    'qty' => '0.01',
+    'price' => (string)($currentPrice * 0.99), // на 1% ниже рынка
+    'timeInForce' => 'GTC'
+]);
+
+echo "Ордер размещён: {$order['result']['orderId']}\n";
+```
+
+---
+
+## 🤝 Вклад в проект
+
+Приветствуются любые вклады! Не стесняйтесь отправлять Pull Request.
+
+1. Форкните репозиторий
+2. Создайте ветку функции (`git checkout -b feature/AmazingFeature`)
+3. Закоммитьте изменения (`git commit -m 'Add some AmazingFeature'`)
+4. Запушьте в ветку (`git push origin feature/AmazingFeature`)
+5. Откройте Pull Request
+
+---
+
+## 📄 Лицензия
+
+**MIT License**
+
+Copyright (c) 2026 Igor Sazonov
+
+- **Автор:** Igor Sazonov (`tigusigalpa`)
+- **Email:** sovletig@gmail.com
+- **GitHub:** https://github.com/tigusigalpa/bybit-php
+
+---
+
+<div align="center">
+
+### 🌟 Поставьте звезду этому репозиторию, если он вам помог!
+
+**Сделано с ❤️ для крипто-трейдинг сообщества**
+
+[Сообщить об ошибке](https://github.com/tigusigalpa/bybit-php/issues) • [Запросить функцию](https://github.com/tigusigalpa/bybit-php/issues) • [Документация](https://bybit-exchange.github.io/docs/v5/guide)
+
+</div>

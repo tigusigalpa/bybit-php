@@ -23,6 +23,18 @@ class BybitServiceProvider extends ServiceProvider
             );
         });
         $this->app->alias(BybitClient::class, 'bybit');
+
+        $this->app->singleton(BybitWebSocket::class, function ($app) {
+            $config = $app['config']->get('bybit', []);
+            return new BybitWebSocket(
+                $config['api_key'] ?? null,
+                $config['api_secret'] ?? null,
+                (bool)($config['testnet'] ?? false),
+                $config['region'] ?? 'global',
+                false
+            );
+        });
+        $this->app->alias(BybitWebSocket::class, 'bybit.websocket');
     }
 
     public function boot()
