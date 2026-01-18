@@ -9,6 +9,7 @@ class BybitClient
     protected string $apiKey;
     protected ?string $apiSecret;
     protected bool $testnet;
+    protected bool $demoTrading;
     protected string $region;
     protected int $recvWindow;
     protected string $signature;
@@ -16,11 +17,12 @@ class BybitClient
     protected Client $http;
     protected array $fees;
 
-    public function __construct(string $apiKey, ?string $apiSecret, bool $testnet = false, string $region = 'global', int $recvWindow = 5000, string $signature = 'hmac', ?string $rsaPrivateKey = null, ?Client $http = null, ?array $fees = null)
+    public function __construct(string $apiKey, ?string $apiSecret, bool $testnet = false, string $region = 'global', int $recvWindow = 5000, string $signature = 'hmac', ?string $rsaPrivateKey = null, ?Client $http = null, ?array $fees = null, bool $demoTrading = false)
     {
         $this->apiKey = $apiKey;
         $this->apiSecret = $apiSecret;
         $this->testnet = $testnet;
+        $this->demoTrading = $demoTrading;
         $this->region = $region;
         $this->recvWindow = $recvWindow;
         $this->signature = $signature;
@@ -44,6 +46,7 @@ class BybitClient
 
     public function baseUri(): string
     {
+        if ($this->demoTrading) return 'https://api-demo.bybit.com';
         if ($this->testnet) return 'https://api-testnet.bybit.com';
         switch (strtolower($this->region)) {
             case 'nl': return 'https://api.bybit.nl';
@@ -142,6 +145,51 @@ class BybitClient
         return $this->request('GET', '/v5/market/tickers', $params);
     }
 
+    public function getKline(array $params): array
+    {
+        return $this->request('GET', '/v5/market/kline', $params);
+    }
+
+    public function getOrderbook(array $params): array
+    {
+        return $this->request('GET', '/v5/market/orderbook', $params);
+    }
+
+    public function getRPIOrderbook(array $params): array
+    {
+        return $this->request('GET', '/v5/market/rpi-orderbook', $params);
+    }
+
+    public function getOpenInterest(array $params): array
+    {
+        return $this->request('GET', '/v5/market/open-interest', $params);
+    }
+
+    public function getRecentTrades(array $params): array
+    {
+        return $this->request('GET', '/v5/market/recent-trade', $params);
+    }
+
+    public function getFundingRateHistory(array $params): array
+    {
+        return $this->request('GET', '/v5/market/funding/history', $params);
+    }
+
+    public function getHistoricalVolatility(array $params): array
+    {
+        return $this->request('GET', '/v5/market/historical-volatility', $params);
+    }
+
+    public function getInsurancePool(array $params): array
+    {
+        return $this->request('GET', '/v5/market/insurance', $params);
+    }
+
+    public function getRiskLimit(array $params): array
+    {
+        return $this->request('GET', '/v5/market/risk-limit', $params);
+    }
+
     public function createOrder(array $params): array
     {
         return $this->request('POST', '/v5/order/create', $params);
@@ -177,6 +225,26 @@ class BybitClient
         return $this->request('GET', '/v5/account/wallet-balance', $params);
     }
 
+    public function getTransferableAmount(array $params): array
+    {
+        return $this->request('GET', '/v5/account/transferable-coin', $params);
+    }
+
+    public function getTransactionLog(array $params): array
+    {
+        return $this->request('GET', '/v5/account/transaction-log', $params);
+    }
+
+    public function getAccountInfo(): array
+    {
+        return $this->request('GET', '/v5/account/info');
+    }
+
+    public function getAccountInstrumentsInfo(array $params): array
+    {
+        return $this->request('GET', '/v5/account/contract-info', $params);
+    }
+
     public function getPositions(array $params): array
     {
         return $this->request('GET', '/v5/position/list', $params);
@@ -204,6 +272,41 @@ class BybitClient
             $payload['sellLeverage'] = (string)$leverage;
         }
         return $this->request('POST', '/v5/position/set-leverage', $payload);
+    }
+
+    public function setAutoAddMargin(array $params): array
+    {
+        return $this->request('POST', '/v5/position/set-auto-add-margin', $params);
+    }
+
+    public function addOrReduceMargin(array $params): array
+    {
+        return $this->request('POST', '/v5/position/add-margin', $params);
+    }
+
+    public function getClosedPnL(array $params): array
+    {
+        return $this->request('GET', '/v5/position/closed-pnl', $params);
+    }
+
+    public function getClosedOptionsPositions(array $params): array
+    {
+        return $this->request('GET', '/v5/position/close-position', $params);
+    }
+
+    public function movePosition(array $params): array
+    {
+        return $this->request('POST', '/v5/position/move-positions', $params);
+    }
+
+    public function getMovePositionHistory(array $params): array
+    {
+        return $this->request('GET', '/v5/position/move-history', $params);
+    }
+
+    public function confirmNewRiskLimit(array $params): array
+    {
+        return $this->request('POST', '/v5/position/confirm-pending-mmr', $params);
     }
 
     protected function lastPrice(string $symbol, string $category): ?float
@@ -271,6 +374,16 @@ class BybitClient
         }
         if ($extra) $payload = array_replace($payload, $extra);
         return $this->request('POST', '/v5/order/create', $payload);
+    }
+
+    public function requestDemoFunds(array $params): array
+    {
+        return $this->request('POST', '/v5/account/demo-apply-money', $params);
+    }
+
+    public function createDemoAccount(): array
+    {
+        return $this->request('POST', '/v5/user/create-demo-member');
     }
 
     public function computeFee(string $type, float $volume, string $level = 'Non-VIP', string $liquidity = 'taker'): float

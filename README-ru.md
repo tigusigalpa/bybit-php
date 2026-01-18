@@ -202,6 +202,7 @@ php artisan vendor:publish --tag=bybit-config
 BYBIT_API_KEY=ваш_api_ключ
 BYBIT_API_SECRET=ваш_секретный_ключ
 BYBIT_TESTNET=true
+BYBIT_DEMO_TRADING=false
 BYBIT_REGION=global
 BYBIT_RECV_WINDOW=5000
 BYBIT_SIGNATURE=hmac
@@ -218,6 +219,7 @@ BYBIT_SIGNATURE=hmac
 | `BYBIT_API_KEY`         | string  | -            | Публичный ключ API Bybit                                       |
 | `BYBIT_API_SECRET`      | string  | -            | Секретный ключ API Bybit                                       |
 | `BYBIT_TESTNET`         | boolean | `false`      | Включить тестовое окружение                                    |
+| `BYBIT_DEMO_TRADING`    | boolean | `false`      | Включить демо-трейдинг окружение                               |
 | `BYBIT_REGION`          | string  | `global`     | Региональный эндпоинт (`global`, `nl`, `tr`, `kz`, `ge`, `ae`) |
 | `BYBIT_RECV_WINDOW`     | integer | `5000`       | Окно приёма запроса (мс)                                       |
 | `BYBIT_SIGNATURE`       | string  | `hmac`       | Тип подписи (`hmac` или `rsa`)                                 |
@@ -344,6 +346,67 @@ $tickers = $client->getTickers([
     'category' => 'linear',
     'symbol' => 'BTCUSDT'
 ]);
+
+// Получить данные свечей/kline
+$klines = $client->getKline([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'interval' => '60',  // 1m, 3m, 5m, 15m, 30m, 60m, 120m, 240m, 360m, 720m, D, W, M
+    'limit' => 200
+]);
+
+// Получить глубину стакана
+$orderbook = $client->getOrderbook([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'limit' => 50  // Макс. глубина: 1, 25, 50, 100, 200, 500
+]);
+
+// Получить RPI (Risk Premium Index) стакан
+$rpiOrderbook = $client->getRPIOrderbook([
+    'category' => 'option',
+    'symbol' => 'BTC-30DEC23-80000-C',
+    'limit' => 25
+]);
+
+// Получить открытый интерес
+$openInterest = $client->getOpenInterest([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'intervalTime' => '5min'  // 5min, 15min, 30min, 1h, 4h, 1d
+]);
+
+// Получить последние публичные сделки
+$recentTrades = $client->getRecentTrades([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'limit' => 60
+]);
+
+// Получить историю ставок финансирования
+$fundingHistory = $client->getFundingRateHistory([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'limit' => 200
+]);
+
+// Получить историческую волатильность (опционы)
+$historicalVolatility = $client->getHistoricalVolatility([
+    'category' => 'option',
+    'baseCoin' => 'BTC',
+    'period' => 7  // 7, 14, 21, 30, 60, 90, 180, 270 дней
+]);
+
+// Получить данные страхового фонда
+$insurance = $client->getInsurancePool([
+    'coin' => 'USDT'
+]);
+
+// Получить лимит риска
+$riskLimit = $client->getRiskLimit([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT'
+]);
 ```
 
 ### Управление ордерами
@@ -423,6 +486,64 @@ $client->setTradingStop([
     'takeProfit' => '35000',
     'stopLoss' => '28000'
 ]);
+
+// Установить автодобавление маржи
+$client->setAutoAddMargin([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'autoAddMargin' => 1,  // 0: выкл, 1: вкл
+    'positionIdx' => 0
+]);
+
+// Вручную добавить или уменьшить маржу
+$client->addOrReduceMargin([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'margin' => '100',  // положительное для добавления, отрицательное для уменьшения
+    'positionIdx' => 0
+]);
+
+// Получить закрытый P&L (последние 2 года)
+$closedPnl = $client->getClosedPnL([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'limit' => 50
+]);
+
+// Получить закрытые опционные позиции (последние 6 месяцев)
+$closedOptions = $client->getClosedOptionsPositions([
+    'category' => 'option',
+    'symbol' => 'BTC-30DEC23-80000-C',
+    'limit' => 50
+]);
+
+// Переместить позицию между UID
+$moveResult = $client->movePosition([
+    'fromUid' => '100307601',
+    'toUid' => '592324',
+    'list' => [
+        [
+            'category' => 'linear',
+            'symbol' => 'BTCUSDT',
+            'price' => '30000',
+            'side' => 'Buy',
+            'qty' => '0.01'
+        ]
+    ]
+]);
+
+// Получить историю перемещений позиций
+$moveHistory = $client->getMovePositionHistory([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'limit' => 50
+]);
+
+// Подтвердить новый лимит риска
+$confirmRisk = $client->confirmNewRiskLimit([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT'
+]);
 ```
 
 ### Аккаунт и кошелёк
@@ -434,8 +555,83 @@ $balance = $client->getWalletBalance([
     'coin' => 'USDT'
 ]);
 
+// Получить доступную для перевода сумму (Unified аккаунт)
+$transferable = $client->getTransferableAmount([
+    'accountType' => 'UNIFIED',
+    'coin' => 'USDT'
+]);
+
+// Получить журнал транзакций
+$transactions = $client->getTransactionLog([
+    'accountType' => 'UNIFIED',
+    'category' => 'linear',
+    'limit' => 50
+]);
+
+// Получить информацию об аккаунте
+$accountInfo = $client->getAccountInfo();
+
+// Получить информацию об инструментах аккаунта
+$instrumentsInfo = $client->getAccountInstrumentsInfo([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT'
+]);
+
 // Рассчитать торговую комиссию
 $fee = $client->computeFee('spot', 1000.0, 'Non-VIP', 'taker');
+```
+
+### Демо-трейдинг
+
+Демо-трейдинг позволяет тестировать стратегии без риска реальных средств. Используйте домен `api-demo.bybit.com`.
+
+```php
+// Инициализация клиента для демо-трейдинга
+$demoClient = new BybitClient(
+    apiKey: 'ваш_демо_api_ключ',
+    apiSecret: 'ваш_демо_секретный_ключ',
+    testnet: false,
+    region: 'global',
+    recvWindow: 5000,
+    signature: 'hmac',
+    rsaPrivateKey: null,
+    http: null,
+    fees: null,
+    demoTrading: true  // Включить режим демо-трейдинга
+);
+
+// Создать демо-аккаунт (используйте продакшн API ключ с api.bybit.com)
+$productionClient = new BybitClient('prod_key', 'prod_secret');
+$demoAccount = $productionClient->createDemoAccount();
+// Возвращает: ['uid' => '123456789', ...]
+
+// Запросить демо-средства (используйте демо API ключ с api-demo.bybit.com)
+$fundingResult = $demoClient->requestDemoFunds([
+    'adjustType' => 0,  // 0: добавить, 1: уменьшить
+    'utaDemoApplyMoney' => [
+        ['coin' => 'USDT', 'amountStr' => '10000'],
+        ['coin' => 'BTC', 'amountStr' => '1']
+    ]
+]);
+
+// Все торговые методы работают одинаково в демо-режиме
+$order = $demoClient->createOrder([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'side' => 'Buy',
+    'orderType' => 'Market',
+    'qty' => '0.01'
+]);
+```
+
+**Laravel Демо-трейдинг:**
+
+```php
+// В файле .env
+BYBIT_DEMO_TRADING=true
+
+// Используйте как обычно
+$balance = Bybit::getWalletBalance(['accountType' => 'UNIFIED']);
 ```
 
 ---

@@ -3,6 +3,7 @@ return [
     'api_key' => env('BYBIT_API_KEY', ''),
     'api_secret' => env('BYBIT_API_SECRET', ''),
     'testnet' => env('BYBIT_TESTNET', false),
+    'demo_trading' => env('BYBIT_DEMO_TRADING', false),
     'region' => env('BYBIT_REGION', 'global'),
     'recv_window' => env('BYBIT_RECV_WINDOW', 5000),
     'rsa_private_key' => env('BYBIT_RSA_PRIVATE_KEY', null),

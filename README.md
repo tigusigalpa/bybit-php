@@ -200,6 +200,7 @@ Create or update your `.env` file:
 BYBIT_API_KEY=your_api_key_here
 BYBIT_API_SECRET=your_api_secret_here
 BYBIT_TESTNET=true
+BYBIT_DEMO_TRADING=false
 BYBIT_REGION=global
 BYBIT_RECV_WINDOW=5000
 BYBIT_SIGNATURE=hmac
@@ -216,6 +217,7 @@ BYBIT_SIGNATURE=hmac
 | `BYBIT_API_KEY`         | string  | -        | Your Bybit API public key                                  |
 | `BYBIT_API_SECRET`      | string  | -        | Your Bybit API secret key                                  |
 | `BYBIT_TESTNET`         | boolean | `false`  | Enable testnet environment                                 |
+| `BYBIT_DEMO_TRADING`    | boolean | `false`  | Enable demo trading environment                            |
 | `BYBIT_REGION`          | string  | `global` | Regional endpoint (`global`, `nl`, `tr`, `kz`, `ge`, `ae`) |
 | `BYBIT_RECV_WINDOW`     | integer | `5000`   | Request receive window (ms)                                |
 | `BYBIT_SIGNATURE`       | string  | `hmac`   | Signature type (`hmac` or `rsa`)                           |
@@ -342,6 +344,67 @@ $tickers = $client->getTickers([
     'category' => 'linear',
     'symbol' => 'BTCUSDT'
 ]);
+
+// Get kline/candlestick data
+$klines = $client->getKline([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'interval' => '60',  // 1m, 3m, 5m, 15m, 30m, 60m, 120m, 240m, 360m, 720m, D, W, M
+    'limit' => 200
+]);
+
+// Get orderbook depth
+$orderbook = $client->getOrderbook([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'limit' => 50  // Max depth: 1, 25, 50, 100, 200, 500
+]);
+
+// Get RPI (Risk Premium Index) orderbook
+$rpiOrderbook = $client->getRPIOrderbook([
+    'category' => 'option',
+    'symbol' => 'BTC-30DEC23-80000-C',
+    'limit' => 25
+]);
+
+// Get open interest
+$openInterest = $client->getOpenInterest([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'intervalTime' => '5min'  // 5min, 15min, 30min, 1h, 4h, 1d
+]);
+
+// Get recent public trades
+$recentTrades = $client->getRecentTrades([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'limit' => 60
+]);
+
+// Get funding rate history
+$fundingHistory = $client->getFundingRateHistory([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'limit' => 200
+]);
+
+// Get historical volatility (options)
+$historicalVolatility = $client->getHistoricalVolatility([
+    'category' => 'option',
+    'baseCoin' => 'BTC',
+    'period' => 7  // 7, 14, 21, 30, 60, 90, 180, 270 days
+]);
+
+// Get insurance pool data
+$insurance = $client->getInsurancePool([
+    'coin' => 'USDT'
+]);
+
+// Get risk limit
+$riskLimit = $client->getRiskLimit([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT'
+]);
 ```
 
 ### Order Management
@@ -421,6 +484,64 @@ $client->setTradingStop([
     'takeProfit' => '35000',
     'stopLoss' => '28000'
 ]);
+
+// Set auto add margin
+$client->setAutoAddMargin([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'autoAddMargin' => 1,  // 0: off, 1: on
+    'positionIdx' => 0
+]);
+
+// Manually add or reduce margin
+$client->addOrReduceMargin([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'margin' => '100',  // positive to add, negative to reduce
+    'positionIdx' => 0
+]);
+
+// Get closed P&L (last 2 years)
+$closedPnl = $client->getClosedPnL([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'limit' => 50
+]);
+
+// Get closed options positions (last 6 months)
+$closedOptions = $client->getClosedOptionsPositions([
+    'category' => 'option',
+    'symbol' => 'BTC-30DEC23-80000-C',
+    'limit' => 50
+]);
+
+// Move position between UIDs
+$moveResult = $client->movePosition([
+    'fromUid' => '100307601',
+    'toUid' => '592324',
+    'list' => [
+        [
+            'category' => 'linear',
+            'symbol' => 'BTCUSDT',
+            'price' => '30000',
+            'side' => 'Buy',
+            'qty' => '0.01'
+        ]
+    ]
+]);
+
+// Get move position history
+$moveHistory = $client->getMovePositionHistory([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'limit' => 50
+]);
+
+// Confirm new risk limit
+$confirmRisk = $client->confirmNewRiskLimit([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT'
+]);
 ```
 
 ### Account & Wallet
@@ -432,8 +553,83 @@ $balance = $client->getWalletBalance([
     'coin' => 'USDT'
 ]);
 
+// Get transferable amount (Unified account)
+$transferable = $client->getTransferableAmount([
+    'accountType' => 'UNIFIED',
+    'coin' => 'USDT'
+]);
+
+// Get transaction log
+$transactions = $client->getTransactionLog([
+    'accountType' => 'UNIFIED',
+    'category' => 'linear',
+    'limit' => 50
+]);
+
+// Get account info
+$accountInfo = $client->getAccountInfo();
+
+// Get account instruments info
+$instrumentsInfo = $client->getAccountInstrumentsInfo([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT'
+]);
+
 // Calculate trading fee
 $fee = $client->computeFee('spot', 1000.0, 'Non-VIP', 'taker');
+```
+
+### Demo Trading
+
+Demo trading allows you to test strategies without risking real funds. Use `api-demo.bybit.com` domain.
+
+```php
+// Initialize demo trading client
+$demoClient = new BybitClient(
+    apiKey: 'your_demo_api_key',
+    apiSecret: 'your_demo_api_secret',
+    testnet: false,
+    region: 'global',
+    recvWindow: 5000,
+    signature: 'hmac',
+    rsaPrivateKey: null,
+    http: null,
+    fees: null,
+    demoTrading: true  // Enable demo trading mode
+);
+
+// Create demo account (use production API key with api.bybit.com)
+$productionClient = new BybitClient('prod_key', 'prod_secret');
+$demoAccount = $productionClient->createDemoAccount();
+// Returns: ['uid' => '123456789', ...]
+
+// Request demo funds (use demo API key with api-demo.bybit.com)
+$fundingResult = $demoClient->requestDemoFunds([
+    'adjustType' => 0,  // 0: add, 1: reduce
+    'utaDemoApplyMoney' => [
+        ['coin' => 'USDT', 'amountStr' => '10000'],
+        ['coin' => 'BTC', 'amountStr' => '1']
+    ]
+]);
+
+// All trading methods work the same in demo mode
+$order = $demoClient->createOrder([
+    'category' => 'linear',
+    'symbol' => 'BTCUSDT',
+    'side' => 'Buy',
+    'orderType' => 'Market',
+    'qty' => '0.01'
+]);
+```
+
+**Laravel Demo Trading:**
+
+```php
+// In .env file
+BYBIT_DEMO_TRADING=true
+
+// Use normally
+$balance = Bybit::getWalletBalance(['accountType' => 'UNIFIED']);
 ```
 
 ---

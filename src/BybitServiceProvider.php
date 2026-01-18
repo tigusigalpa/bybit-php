@@ -19,7 +19,8 @@ class BybitServiceProvider extends ServiceProvider
                 $config['signature'] ?? 'hmac',
                 $config['rsa_private_key'] ?? null,
                 null,
-                $config['fees'] ?? null
+                $config['fees'] ?? null,
+                (bool)($config['demo_trading'] ?? false)
             );
         });
         $this->app->alias(BybitClient::class, 'bybit');
