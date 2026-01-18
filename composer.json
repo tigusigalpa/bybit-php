@@ -1,0 +1,31 @@
+{
+  "name": "tigusigalpa/bybit-php",
+  "description": "Bybit V5 API client for PHP with Laravel 8-12 integration",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {"name":"Igor Sazonov","email":"sovletig@gmail.com"}
+  ],
+  "require": {
+    "php": "^7.4|^8.0|^8.1|^8.2",
+    "guzzlehttp/guzzle": "^7.8",
+    "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Tigusigalpa\\ByBit\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Tigusigalpa\\ByBit\\BybitServiceProvider"
+      ],
+      "aliases": {
+        "Bybit": "Tigusigalpa\\ByBit\\Facades\\Bybit"
+      }
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
