@@ -11,7 +11,7 @@
 
 ![ByBit PHP SDK](https://github.com/user-attachments/assets/cd31c2a6-5853-4287-a79b-2fb16ca3fcaa)
 
-**🌐 Language:** [English](#) | [Русский](README-ru.md)
+**🌐 Language:** English | [Русский](README-ru.md)
 
 *A powerful, lightweight library for seamless integration with Bybit V5 API in pure PHP and Laravel projects.*
 
@@ -21,24 +21,71 @@
 
 ---
 
+## 🎯 Why Bybit PHP SDK?
+
+Building a cryptocurrency trading application or bot requires reliable, secure, and efficient communication with
+exchange APIs. The **Bybit PHP SDK** simplifies this process by providing a production-ready, well-tested library that
+handles all the complexity of interacting with Bybit's V5 API.
+
+### What Problems Does It Solve?
+
+**For Developers:**
+
+- **No More Manual API Calls** - Forget about crafting HTTP requests, managing authentication, and parsing responses
+  manually
+- **Type-Safe Operations** - Reduce bugs with structured request/response handling
+- **Real-Time Data** - Built-in WebSocket support for live market data and account updates
+- **Laravel Integration** - Native support for dependency injection, facades, and service providers
+- **Production Ready** - Comprehensive error handling, automatic reconnection, and battle-tested code
+
+**For Trading Applications:**
+
+- **Automated Trading Bots** - Build sophisticated trading strategies with reliable order execution
+- **Portfolio Management** - Monitor positions, balances, and P&L in real-time
+- **Market Analysis Tools** - Access live market data, orderbooks, and historical klines
+- **Risk Management** - Implement stop-losses, take-profits, and position sizing programmatically
+- **Multi-Account Management** - Handle multiple trading accounts with ease
+
+### Who Is This For?
+
+✅ **PHP Developers** building cryptocurrency trading applications  
+✅ **Algorithmic Traders** creating automated trading systems  
+✅ **Laravel Developers** needing exchange integration  
+✅ **Fintech Startups** building crypto trading platforms  
+✅ **Quantitative Analysts** developing trading strategies  
+✅ **Portfolio Managers** requiring programmatic access to Bybit
+
+### Key Benefits
+
+🚀 **Fast Integration** - Get started in minutes with clear documentation and examples  
+🔒 **Secure by Default** - Industry-standard HMAC-SHA256 and RSA-SHA256 signature support  
+⚡ **High Performance** - Optimized for low latency and high throughput  
+🌍 **Global Support** - Works with all Bybit regional endpoints  
+📊 **Complete API Coverage** - Access to all Bybit V5 endpoints  
+🔄 **Real-Time Updates** - WebSocket streaming for instant market data  
+🛠️ **Developer Friendly** - Intuitive API design with comprehensive examples  
+🧪 **Testnet Support** - Test your strategies risk-free before going live
+
+---
+
 ## 📋 Table of Contents
 
 - [✨ Features](#-features)
 - [📦 Installation](#-installation)
-  - [Pure PHP](#pure-php-without-laravel)
-  - [Laravel Integration](#laravel-integration)
+    - [Pure PHP](#pure-php-without-laravel)
+    - [Laravel Integration](#laravel-integration)
 - [⚙️ Configuration](#️-configuration)
 - [🚀 Quick Start](#-quick-start)
-  - [Pure PHP Usage](#pure-php-usage)
-  - [Laravel Usage](#laravel-usage)
+    - [Pure PHP Usage](#pure-php-usage)
+    - [Laravel Usage](#laravel-usage)
 - [📚 API Methods](#-api-methods)
-  - [Market Data](#market-data)
-  - [Order Management](#order-management)
-  - [Position Management](#position-management)
-  - [Account & Wallet](#account--wallet)
+    - [Market Data](#market-data)
+    - [Order Management](#order-management)
+    - [Position Management](#position-management)
+    - [Account & Wallet](#account--wallet)
 - [🌐 WebSocket Streaming](#-websocket-streaming)
-  - [Public Streams](#public-streams)
-  - [Private Streams](#private-streams)
+    - [Public Streams](#public-streams)
+    - [Private Streams](#private-streams)
 - [💡 Advanced Usage](#-advanced-usage)
 - [🌍 Regional Endpoints](#-regional-endpoints)
 - [🔐 Authentication](#-authentication)
@@ -50,32 +97,55 @@
 
 ## ✨ Features
 
+The Bybit PHP SDK provides everything you need to build professional-grade cryptocurrency trading applications. Whether
+you're creating a simple market data dashboard or a complex algorithmic trading system, this library has you covered.
+
 <table>
 <tr>
 <td width="50%">
 
 ### 🎯 Core Features
-- ✅ Full Bybit V5 API support
-- ✅ HMAC-SHA256 & RSA-SHA256 signing
-- ✅ Testnet & Mainnet environments
-- ✅ Regional endpoint selection
-- ✅ Pure PHP & Laravel compatible
-- ✅ Type-safe request handling
+
+- ✅ **Full Bybit V5 API Support** - Complete access to all trading, market data, and account endpoints
+- ✅ **Dual Signature Methods** - HMAC-SHA256 for speed, RSA-SHA256 for enhanced security
+- ✅ **Multi-Environment** - Seamlessly switch between Testnet (for testing) and Mainnet (for live trading)
+- ✅ **Global Reach** - Support for all Bybit regional endpoints (NL, TR, KZ, GE, AE)
+- ✅ **Framework Agnostic** - Works with pure PHP or integrates beautifully with Laravel
+- ✅ **Type-Safe** - Structured request/response handling reduces runtime errors
 
 </td>
 <td width="50%">
 
 ### ⚡ Advanced Features
-- ✅ Real-time WebSocket streaming
-- ✅ Auto-reconnection handling
-- ✅ Multiple topic subscriptions
-- ✅ Configurable recv_window
-- ✅ Comprehensive error handling
-- ✅ Laravel facade & DI support
+
+- ✅ **Real-Time WebSocket** - Stream live market data and account updates with millisecond latency
+- ✅ **Smart Reconnection** - Automatic reconnection with exponential backoff on connection drops
+- ✅ **Multi-Stream Support** - Subscribe to multiple symbols and data types simultaneously
+- ✅ **Flexible Configuration** - Customize recv_window, timeouts, and retry strategies
+- ✅ **Production-Ready** - Comprehensive error handling with detailed exception messages
+- ✅ **Laravel First-Class** - Facades, dependency injection, and service provider included
 
 </td>
 </tr>
 </table>
+
+### 💼 Real-World Use Cases
+
+**Trading Bots & Automation**
+Build sophisticated trading bots that execute strategies 24/7. Place orders, manage positions, and react to market
+conditions automatically. Perfect for grid trading, DCA bots, arbitrage, and market-making strategies.
+
+**Portfolio Management**
+Monitor multiple trading accounts, track P&L across positions, and manage risk in real-time. Get instant notifications
+on position changes, order fills, and balance updates through WebSocket streams.
+
+**Market Analysis & Research**
+Access historical kline data, real-time orderbook depth, and trade flows for quantitative analysis. Build custom
+indicators, backtest strategies, and analyze market microstructure.
+
+**Exchange Integration**
+Integrate Bybit trading into your existing platform, whether it's a crypto portfolio tracker, trading terminal, or
+fintech application. The SDK handles all API complexity so you can focus on your business logic.
 
 ---
 
@@ -92,20 +162,26 @@ composer require tigusigalpa/bybit-php
 **For local monorepo setup:**
 
 1. Add repository to `composer.json`:
+
 ```json
 {
-  "repositories": [
-    { "type": "path", "url": "public_html/packages/bybit-php" }
-  ]
+    "repositories": [
+        {
+            "type": "path",
+            "url": "public_html/packages/bybit-php"
+        }
+    ]
 }
 ```
 
 2. Install the package:
+
 ```bash
 composer require tigusigalpa/bybit-php:* --prefer-source
 ```
 
 3. Publish configuration:
+
 ```bash
 php artisan vendor:publish --tag=bybit-config
 ```
@@ -135,15 +211,15 @@ BYBIT_SIGNATURE=hmac
 
 ### Configuration Options
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `BYBIT_API_KEY` | string | - | Your Bybit API public key |
-| `BYBIT_API_SECRET` | string | - | Your Bybit API secret key |
-| `BYBIT_TESTNET` | boolean | `false` | Enable testnet environment |
-| `BYBIT_REGION` | string | `global` | Regional endpoint (`global`, `nl`, `tr`, `kz`, `ge`, `ae`) |
-| `BYBIT_RECV_WINDOW` | integer | `5000` | Request receive window (ms) |
-| `BYBIT_SIGNATURE` | string | `hmac` | Signature type (`hmac` or `rsa`) |
-| `BYBIT_RSA_PRIVATE_KEY` | string | `null` | RSA private key (PEM format) |
+| Parameter               | Type    | Default  | Description                                                |
+|-------------------------|---------|----------|------------------------------------------------------------|
+| `BYBIT_API_KEY`         | string  | -        | Your Bybit API public key                                  |
+| `BYBIT_API_SECRET`      | string  | -        | Your Bybit API secret key                                  |
+| `BYBIT_TESTNET`         | boolean | `false`  | Enable testnet environment                                 |
+| `BYBIT_REGION`          | string  | `global` | Regional endpoint (`global`, `nl`, `tr`, `kz`, `ge`, `ae`) |
+| `BYBIT_RECV_WINDOW`     | integer | `5000`   | Request receive window (ms)                                |
+| `BYBIT_SIGNATURE`       | string  | `hmac`   | Signature type (`hmac` or `rsa`)                           |
+| `BYBIT_RSA_PRIVATE_KEY` | string  | `null`   | RSA private key (PEM format)                               |
 
 ---
 
@@ -549,15 +625,15 @@ $feeDeriv = $client->computeFee('derivatives', $volume, 'VIP1', 'maker');
 
 ## 🌍 Regional Endpoints
 
-| Region | Code | Endpoint |
-|--------|------|----------|
-| 🌐 Global | `global` | `https://api.bybit.com` |
-| 🇳🇱 Netherlands | `nl` | `https://api.bybit.nl` |
-| 🇹🇷 Turkey | `tr` | `https://api.bybit-tr.com` |
-| 🇰🇿 Kazakhstan | `kz` | `https://api.bybit.kz` |
-| 🇬🇪 Georgia | `ge` | `https://api.bybitgeorgia.ge` |
-| 🇦🇪 UAE | `ae` | `https://api.bybit.ae` |
-| 🧪 Testnet | - | `https://api-testnet.bybit.com` |
+| Region           | Code     | Endpoint                        |
+|------------------|----------|---------------------------------|
+| 🌐 Global        | `global` | `https://api.bybit.com`         |
+| 🇳🇱 Netherlands | `nl`     | `https://api.bybit.nl`          |
+| 🇹🇷 Turkey      | `tr`     | `https://api.bybit-tr.com`      |
+| 🇰🇿 Kazakhstan  | `kz`     | `https://api.bybit.kz`          |
+| 🇬🇪 Georgia     | `ge`     | `https://api.bybitgeorgia.ge`   |
+| 🇦🇪 UAE         | `ae`     | `https://api.bybit.ae`          |
+| 🧪 Testnet       | -        | `https://api-testnet.bybit.com` |
 
 ---
 
@@ -568,11 +644,13 @@ $feeDeriv = $client->computeFee('derivatives', $volume, 'VIP1', 'maker');
 Bybit V5 API uses HMAC-SHA256 or RSA-SHA256 for request signing:
 
 **For GET requests:**
+
 ```
 signature_payload = timestamp + api_key + recv_window + queryString
 ```
 
 **For POST requests:**
+
 ```
 signature_payload = timestamp + api_key + recv_window + jsonBody
 ```
