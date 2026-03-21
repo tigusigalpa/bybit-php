@@ -1,155 +1,41 @@
 <div align="center">
 
-# 🚀 Bybit PHP SDK
+# Bybit PHP SDK
 
-### Professional V5 API Client for PHP & Laravel
+### V5 API Client for PHP & Laravel
 
 [![PHP Version](https://img.shields.io/badge/PHP-7.4%20%7C%208.0%20%7C%208.1%20%7C%208.2-blue.svg)](https://php.net)
 [![Laravel](https://img.shields.io/badge/Laravel-8%20%7C%209%20%7C%2010%20%7C%2011%20%7C%2012-red.svg)](https://laravel.com)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![WebSocket](https://img.shields.io/badge/WebSocket-Supported-brightgreen.svg)](https://bybit-exchange.github.io/docs/v5/ws/connect)
 
-![ByBit PHP SDK](https://github.com/user-attachments/assets/cd31c2a6-5853-4287-a79b-2fb16ca3fcaa)
+![ByBit PHP SDK](https://i.postimg.cc/tgv9j30p/bybit-php-banner-gh-(1).jpg)
 
-**🌐 Language:** English | [Русский](README-ru.md)
+**Language:** English | [Русский](README-ru.md)
 
-*A powerful, lightweight library for seamless integration with Bybit V5 API in pure PHP and Laravel projects.*
+> 📖 **[Full documentation available on Wiki](https://github.com/tigusigalpa/bybit-php/wiki)**
 
-[Features](#-features) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [WebSocket](#-websocket-streaming) • [Examples](#-examples)
+PHP-библиотека для работы с Bybit V5 API. Поддерживает REST и WebSocket, работает как standalone, так и с Laravel.
+
+[Features](#features) • [Installation](#installation) • [Quick Start](#quick-start) • [API Methods](#api-methods) • [WebSocket](#websocket-streaming) • [Examples](#examples)
 
 </div>
 
 ---
 
-## 🎯 Why Bybit PHP SDK?
+## Features
 
-Building a cryptocurrency trading application or bot requires reliable, secure, and efficient communication with
-exchange APIs. The **Bybit PHP SDK** simplifies this process by providing a production-ready, well-tested library that
-handles all the complexity of interacting with Bybit's V5 API.
-
-### What Problems Does It Solve?
-
-**For Developers:**
-
-- **No More Manual API Calls** - Forget about crafting HTTP requests, managing authentication, and parsing responses
-  manually
-- **Type-Safe Operations** - Reduce bugs with structured request/response handling
-- **Real-Time Data** - Built-in WebSocket support for live market data and account updates
-- **Laravel Integration** - Native support for dependency injection, facades, and service providers
-- **Production Ready** - Comprehensive error handling, automatic reconnection, and battle-tested code
-
-**For Trading Applications:**
-
-- **Automated Trading Bots** - Build sophisticated trading strategies with reliable order execution
-- **Portfolio Management** - Monitor positions, balances, and P&L in real-time
-- **Market Analysis Tools** - Access live market data, orderbooks, and historical klines
-- **Risk Management** - Implement stop-losses, take-profits, and position sizing programmatically
-- **Multi-Account Management** - Handle multiple trading accounts with ease
-
-### Who Is This For?
-
-✅ **PHP Developers** building cryptocurrency trading applications  
-✅ **Algorithmic Traders** creating automated trading systems  
-✅ **Laravel Developers** needing exchange integration  
-✅ **Fintech Startups** building crypto trading platforms  
-✅ **Quantitative Analysts** developing trading strategies  
-✅ **Portfolio Managers** requiring programmatic access to Bybit
-
-### Key Benefits
-
-🚀 **Fast Integration** - Get started in minutes with clear documentation and examples  
-🔒 **Secure by Default** - Industry-standard HMAC-SHA256 and RSA-SHA256 signature support  
-⚡ **High Performance** - Optimized for low latency and high throughput  
-🌍 **Global Support** - Works with all Bybit regional endpoints  
-📊 **Complete API Coverage** - Access to all Bybit V5 endpoints  
-🔄 **Real-Time Updates** - WebSocket streaming for instant market data  
-🛠️ **Developer Friendly** - Intuitive API design with comprehensive examples  
-🧪 **Testnet Support** - Test your strategies risk-free before going live
+- Full Bybit V5 API coverage (spot, linear, inverse, options)
+- HMAC-SHA256 and RSA-SHA256 signatures
+- WebSocket for real-time data (orderbook, trades, klines, account updates)
+- Testnet and demo trading support
+- Regional endpoints (NL, TR, KZ, GE, AE)
+- Laravel integration (facade, service provider, config publishing)
+- Automatic reconnection for WebSocket
 
 ---
 
-## 📋 Table of Contents
-
-- [✨ Features](#-features)
-- [📦 Installation](#-installation)
-    - [Pure PHP](#pure-php-without-laravel)
-    - [Laravel Integration](#laravel-integration)
-- [⚙️ Configuration](#️-configuration)
-- [🚀 Quick Start](#-quick-start)
-    - [Pure PHP Usage](#pure-php-usage)
-    - [Laravel Usage](#laravel-usage)
-- [📚 API Methods](#-api-methods)
-    - [Market Data](#market-data)
-    - [Order Management](#order-management)
-    - [Position Management](#position-management)
-    - [Account & Wallet](#account--wallet)
-- [🌐 WebSocket Streaming](#-websocket-streaming)
-    - [Public Streams](#public-streams)
-    - [Private Streams](#private-streams)
-- [💡 Advanced Usage](#-advanced-usage)
-- [🌍 Regional Endpoints](#-regional-endpoints)
-- [🔐 Authentication](#-authentication)
-- [📖 Examples](#-examples)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-
----
-
-## ✨ Features
-
-The Bybit PHP SDK provides everything you need to build professional-grade cryptocurrency trading applications. Whether
-you're creating a simple market data dashboard or a complex algorithmic trading system, this library has you covered.
-
-<table>
-<tr>
-<td width="50%">
-
-### 🎯 Core Features
-
-- ✅ **Full Bybit V5 API Support** - Complete access to all trading, market data, and account endpoints
-- ✅ **Dual Signature Methods** - HMAC-SHA256 for speed, RSA-SHA256 for enhanced security
-- ✅ **Multi-Environment** - Seamlessly switch between Testnet (for testing) and Mainnet (for live trading)
-- ✅ **Global Reach** - Support for all Bybit regional endpoints (NL, TR, KZ, GE, AE)
-- ✅ **Framework Agnostic** - Works with pure PHP or integrates beautifully with Laravel
-- ✅ **Type-Safe** - Structured request/response handling reduces runtime errors
-
-</td>
-<td width="50%">
-
-### ⚡ Advanced Features
-
-- ✅ **Real-Time WebSocket** - Stream live market data and account updates with millisecond latency
-- ✅ **Smart Reconnection** - Automatic reconnection with exponential backoff on connection drops
-- ✅ **Multi-Stream Support** - Subscribe to multiple symbols and data types simultaneously
-- ✅ **Flexible Configuration** - Customize recv_window, timeouts, and retry strategies
-- ✅ **Production-Ready** - Comprehensive error handling with detailed exception messages
-- ✅ **Laravel First-Class** - Facades, dependency injection, and service provider included
-
-</td>
-</tr>
-</table>
-
-### 💼 Real-World Use Cases
-
-**Trading Bots & Automation**
-Build sophisticated trading bots that execute strategies 24/7. Place orders, manage positions, and react to market
-conditions automatically. Perfect for grid trading, DCA bots, arbitrage, and market-making strategies.
-
-**Portfolio Management**
-Monitor multiple trading accounts, track P&L across positions, and manage risk in real-time. Get instant notifications
-on position changes, order fills, and balance updates through WebSocket streams.
-
-**Market Analysis & Research**
-Access historical kline data, real-time orderbook depth, and trade flows for quantitative analysis. Build custom
-indicators, backtest strategies, and analyze market microstructure.
-
-**Exchange Integration**
-Integrate Bybit trading into your existing platform, whether it's a crypto portfolio tracker, trading terminal, or
-fintech application. The SDK handles all API complexity so you can focus on your business logic.
-
----
-
-## 📦 Installation
+## Installation
 
 ### Pure PHP (without Laravel)
 
@@ -186,11 +72,11 @@ composer require tigusigalpa/bybit-php:* --prefer-source
 php artisan vendor:publish --tag=bybit-config
 ```
 
-> 💡 **Note:** The package uses Laravel auto-discovery for service provider and facade registration.
+Laravel auto-discovery регистрирует service provider и facade автоматически.
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -225,7 +111,7 @@ BYBIT_SIGNATURE=hmac
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Pure PHP Usage
 
@@ -331,7 +217,7 @@ class TradingController extends Controller
 
 ---
 
-## 📚 API Methods
+## API Methods
 
 ### Market Data
 
@@ -581,7 +467,7 @@ $fee = $client->computeFee('spot', 1000.0, 'Non-VIP', 'taker');
 
 ### Demo Trading
 
-Demo trading allows you to test strategies without risking real funds. Use `api-demo.bybit.com` domain.
+Demo trading — тестирование стратегий без риска. Используется домен `api-demo.bybit.com`.
 
 ```php
 // Initialize demo trading client
@@ -634,7 +520,7 @@ $balance = Bybit::getWalletBalance(['accountType' => 'UNIFIED']);
 
 ---
 
-## 🌐 WebSocket Streaming
+## WebSocket Streaming
 
 ### Public Streams
 
@@ -752,7 +638,7 @@ Run with: `php artisan bybit:listen BTCUSDT`
 
 ---
 
-## 💡 Advanced Usage
+## Advanced Usage
 
 ### Universal Order Placement
 
@@ -819,7 +705,7 @@ $feeDeriv = $client->computeFee('derivatives', $volume, 'VIP1', 'maker');
 
 ---
 
-## 🌍 Regional Endpoints
+## Regional Endpoints
 
 | Region           | Code     | Endpoint                        |
 |------------------|----------|---------------------------------|
@@ -833,7 +719,7 @@ $feeDeriv = $client->computeFee('derivatives', $volume, 'VIP1', 'maker');
 
 ---
 
-## 🔐 Authentication
+## Authentication
 
 ### Signature Generation
 
@@ -865,13 +751,13 @@ X-BAPI-SIGN-TYPE: 2 (for HMAC)
 Content-Type: application/json (for POST)
 ```
 
-> 📖 **Official Documentation:** https://bybit-exchange.github.io/docs/v5/guide
+Official docs: https://bybit-exchange.github.io/docs/v5/guide
 
 ---
 
-## 📖 Examples
+## Examples
 
-### Complete Trading Bot Example
+### Trading Bot Example
 
 ```php
 <?php
@@ -918,7 +804,7 @@ echo "Order placed: {$order['result']['orderId']}\n";
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -930,7 +816,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
 
-## 📄 License
+## License
 
 **MIT License**
 
@@ -944,10 +830,6 @@ Copyright (c) 2026 Igor Sazonov
 
 <div align="center">
 
-### 🌟 Star this repository if you find it helpful!
-
-**Made with ❤️ for the crypto trading community**
-
-[Report Bug](https://github.com/tigusigalpa/bybit-php/issues) • [Request Feature](https://github.com/tigusigalpa/bybit-php/issues) • [Documentation](https://bybit-exchange.github.io/docs/v5/guide)
+[Report Bug](https://github.com/tigusigalpa/bybit-php/issues) • [Request Feature](https://github.com/tigusigalpa/bybit-php/issues) • [Docs](https://bybit-exchange.github.io/docs/v5/guide)
 
 </div>
