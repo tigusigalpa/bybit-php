@@ -15,7 +15,7 @@
 
 > 📖 **[Full documentation available on Wiki](https://github.com/tigusigalpa/bybit-php/wiki)**
 
-PHP-библиотека для работы с Bybit V5 API. Поддерживает REST и WebSocket, работает как standalone, так и с Laravel.
+A PHP library for working with the Bybit V5 API. Supports REST and WebSockets, and works both standalone and with Laravel.
 
 [Features](#features) • [Installation](#installation) • [Quick Start](#quick-start) • [API Methods](#api-methods) • [WebSocket](#websocket-streaming) • [Examples](#examples)
 
