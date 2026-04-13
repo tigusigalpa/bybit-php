@@ -1,6 +1,6 @@
 {
   "name": "tigusigalpa/bybit-php",
-  "description": "Bybit V5 API client for PHP with Laravel 8-12 integration",
+  "description": "Bybit V5 API client for PHP with Laravel 8-13 integration",
   "type": "library",
   "license": "MIT",
   "authors": [
@@ -9,7 +9,7 @@
   "require": {
     "php": "^7.4|^8.0|^8.1|^8.2",
     "guzzlehttp/guzzle": "^7.8",
-    "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0",
+    "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0|^13.0",
     "textalk/websocket": "^1.6"
   },
   "autoload": {
