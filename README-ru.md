@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![WebSocket](https://img.shields.io/badge/WebSocket-Supported-brightgreen.svg)](https://bybit-exchange.github.io/docs/v5/ws/connect)
 
-![ByBit PHP SDK](https://i.postimg.cc/tgv9j30p/bybit-php-banner-gh-(1).jpg)
+![ByBit PHP SDK](https://i.postimg.cc/T3PpqGyn/bybit-php-banner-v2.jpg)
 
 **Язык:** [English](README.md) | Русский
 

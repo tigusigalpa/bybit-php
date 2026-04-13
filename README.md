@@ -9,13 +9,14 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![WebSocket](https://img.shields.io/badge/WebSocket-Supported-brightgreen.svg)](https://bybit-exchange.github.io/docs/v5/ws/connect)
 
-![ByBit PHP SDK](https://i.postimg.cc/tgv9j30p/bybit-php-banner-gh-(1).jpg)
+![ByBit PHP SDK](https://i.postimg.cc/T3PpqGyn/bybit-php-banner-v2.jpg)
 
 **Language:** English | [Русский](README-ru.md)
 
 > 📖 **[Full documentation available on Wiki](https://github.com/tigusigalpa/bybit-php/wiki)**
 
-A PHP library for working with the Bybit V5 API. Supports REST and WebSockets, and works both standalone and with Laravel.
+A PHP library for working with the Bybit V5 API. Supports REST and WebSockets, and works both standalone and with
+Laravel.
 
 [Features](#features) • [Installation](#installation) • [Quick Start](#quick-start) • [API Methods](#api-methods) • [WebSocket](#websocket-streaming) • [Examples](#examples)
 
