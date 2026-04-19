@@ -14,49 +14,75 @@ class BybitWebSocket
     protected array $subscriptions = [];
     protected $messageCallback;
     protected bool $isPrivate;
+    protected string $category;
 
-    public function __construct(?string $apiKey = null, ?string $apiSecret = null, bool $testnet = false, string $region = 'global', bool $isPrivate = false)
+    public function __construct(?string $apiKey = null, ?string $apiSecret = null, bool $testnet = false, string $region = 'global', bool $isPrivate = false, string $category = 'spot')
     {
         $this->apiKey = $apiKey;
         $this->apiSecret = $apiSecret;
         $this->testnet = $testnet;
         $this->region = $region;
         $this->isPrivate = $isPrivate;
+        $this->category = $category;
+    }
+
+    public function setCategory(string $category): self
+    {
+        $this->category = $category;
+        return $this;
     }
 
     protected function getWebSocketUrl(): string
     {
+        $publicPath = $this->getPublicPath();
+        
         if ($this->testnet) {
             return $this->isPrivate 
                 ? 'wss://stream-testnet.bybit.com/v5/private'
-                : 'wss://stream-testnet.bybit.com/v5/public/spot';
+                : 'wss://stream-testnet.bybit.com/v5/public/' . $publicPath;
         }
 
         switch (strtolower($this->region)) {
             case 'nl':
                 return $this->isPrivate 
                     ? 'wss://stream.bybit.nl/v5/private'
-                    : 'wss://stream.bybit.nl/v5/public/spot';
+                    : 'wss://stream.bybit.nl/v5/public/' . $publicPath;
             case 'tr':
                 return $this->isPrivate 
                     ? 'wss://stream.bybit-tr.com/v5/private'
-                    : 'wss://stream.bybit-tr.com/v5/public/spot';
+                    : 'wss://stream.bybit-tr.com/v5/public/' . $publicPath;
             case 'kz':
                 return $this->isPrivate 
                     ? 'wss://stream.bybit.kz/v5/private'
-                    : 'wss://stream.bybit.kz/v5/public/spot';
+                    : 'wss://stream.bybit.kz/v5/public/' . $publicPath;
             case 'ge':
                 return $this->isPrivate 
                     ? 'wss://stream.bybitgeorgia.ge/v5/private'
-                    : 'wss://stream.bybitgeorgia.ge/v5/public/spot';
+                    : 'wss://stream.bybitgeorgia.ge/v5/public/' . $publicPath;
             case 'ae':
                 return $this->isPrivate 
                     ? 'wss://stream.bybit.ae/v5/private'
-                    : 'wss://stream.bybit.ae/v5/public/spot';
+                    : 'wss://stream.bybit.ae/v5/public/' . $publicPath;
             default:
                 return $this->isPrivate 
                     ? 'wss://stream.bybit.com/v5/private'
-                    : 'wss://stream.bybit.com/v5/public/spot';
+                    : 'wss://stream.bybit.com/v5/public/' . $publicPath;
+        }
+    }
+
+    protected function getPublicPath(): string
+    {
+        switch (strtolower($this->category)) {
+            case 'linear':
+            case 'usdt':
+            case 'usdc':
+                return 'linear';
+            case 'inverse':
+                return 'inverse';
+            case 'option':
+                return 'option';
+            default:
+                return 'spot';
         }
     }
 
@@ -75,7 +101,7 @@ class BybitWebSocket
 
     protected function authenticate(): void
     {
-        $expires = (int)(microtime(true) * 1000) + 10000;
+        $expires = (string)((int)(microtime(true) * 1000) + 10000);
         $signature = hash_hmac('sha256', 'GET/realtime' . $expires, $this->apiSecret);
 
         $authMessage = [
@@ -187,7 +213,11 @@ class BybitWebSocket
                 }
 
                 if (isset($data['op']) && $data['op'] === 'ping') {
-                    $this->send(['op' => 'pong']);
+                    $pong = ['op' => 'pong'];
+                    if (isset($data['req_id'])) {
+                        $pong['req_id'] = $data['req_id'];
+                    }
+                    $this->send($pong);
                 }
 
             } catch (ConnectionException $e) {

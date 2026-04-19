@@ -7,6 +7,6 @@ class BybitWebSocket extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return \Tigusigalpa\ByBit\BybitWebSocket::class;
+        return 'bybit.websocket';
     }
 }

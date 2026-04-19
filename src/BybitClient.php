@@ -16,8 +16,10 @@ class BybitClient
     protected ?string $rsaPrivateKey;
     protected Client $http;
     protected array $fees;
+    protected float $lastRequestTime = 0;
+    protected bool $throwOnError = false;
 
-    public function __construct(string $apiKey, ?string $apiSecret, bool $testnet = false, string $region = 'global', int $recvWindow = 5000, string $signature = 'hmac', ?string $rsaPrivateKey = null, ?Client $http = null, ?array $fees = null, bool $demoTrading = false)
+    public function __construct(string $apiKey, ?string $apiSecret, bool $testnet = false, string $region = 'global', int $recvWindow = 5000, string $signature = 'hmac', ?string $rsaPrivateKey = null, ?Client $http = null, ?array $fees = null, bool $demoTrading = false, bool $throwOnError = false)
     {
         $this->apiKey = $apiKey;
         $this->apiSecret = $apiSecret;
@@ -42,6 +44,13 @@ class BybitClient
                 'Non-VIP' => ['maker' => 0.000400, 'taker' => 0.001000],
             ],
         ];
+        $this->throwOnError = $throwOnError;
+    }
+
+    public function setThrowOnError(bool $throw): self
+    {
+        $this->throwOnError = $throw;
+        return $this;
     }
 
     public function baseUri(): string
@@ -90,6 +99,8 @@ class BybitClient
             'X-BAPI-TIMESTAMP' => $ts,
             'X-BAPI-RECV-WINDOW' => $recv,
             'X-BAPI-SIGN' => $sign,
+            'User-Agent' => 'bybit-php/1.0.0',
+            'X-Referer' => 'bybit-php',
         ];
         if ($this->signature === 'hmac') {
             $headers['X-BAPI-SIGN-TYPE'] = '2';
@@ -104,7 +115,6 @@ class BybitClient
     protected function buildQuery(array $params): string
     {
         if (!$params) return '';
-        ksort($params);
         return http_build_query($params, '', '&', PHP_QUERY_RFC3986);
     }
 
@@ -116,6 +126,7 @@ class BybitClient
     public function request(string $method, string $path, array $params = [], array $options = []): array
     {
         $method = strtoupper($method);
+        $this->rateLimit($method);
         $headers = $this->headers($method, $path, $params);
         $opts = [RequestOptions::HEADERS => $headers];
         if ($method === 'GET') {
@@ -127,7 +138,27 @@ class BybitClient
         $res = $this->http->request($method, $path, $opts);
         $body = (string)$res->getBody();
         $data = json_decode($body, true);
-        return is_array($data) ? $data : ['raw' => $body];
+        if (!is_array($data)) {
+            return ['raw' => $body];
+        }
+        if ($this->throwOnError && isset($data['retCode']) && $data['retCode'] !== 0) {
+            throw new \RuntimeException(
+                'Bybit API error: ' . ($data['retMsg'] ?? 'Unknown error') . ' (code: ' . $data['retCode'] . ')',
+                (int)$data['retCode']
+            );
+        }
+        return $data;
+    }
+
+    protected function rateLimit(string $method): void
+    {
+        $minInterval = ($method === 'GET') ? 0.1 : 0.3;
+        $now = microtime(true);
+        $elapsed = $now - $this->lastRequestTime;
+        if ($elapsed < $minInterval) {
+            usleep((int)(($minInterval - $elapsed) * 1000000));
+        }
+        $this->lastRequestTime = microtime(true);
     }
 
     public function endpoint(): string
@@ -344,6 +375,9 @@ class BybitClient
             $payload['orderType'] = $orderType;
             if ($orderType === 'Limit' && $price) $payload['price'] = (string)$price;
             $payload['qty'] = (string)$size;
+            if ($orderType === 'Market' && ($side === 'Buy' || $side === null)) {
+                $payload['marketUnit'] = $extra['marketUnit'] ?? 'quoteCoin';
+            }
         } else {
             if (!$side) $side = 'Buy';
             $payload['side'] = $side;
@@ -358,7 +392,13 @@ class BybitClient
         if (strtolower($execution) === 'trigger') {
             $payload['orderType'] = 'Market';
             if ($price) $payload['triggerPrice'] = (string)$price;
-            $payload['triggerDirection'] = ($side === 'Buy') ? 1 : 2;
+            $triggerDir = $extra['triggerDirection'] ?? null;
+            if ($triggerDir === null) {
+                $currentPrice = $this->lastPrice($symbol, $category) ?? 0;
+                $triggerDir = ($price > $currentPrice) ? 1 : 2;
+            }
+            $payload['triggerDirection'] = (int)$triggerDir;
+            unset($extra['triggerDirection']);
         }
         if ($slTp && !$isSpot) {
             $mode = $slTp['type'] ?? 'absolute';

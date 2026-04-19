@@ -9,6 +9,8 @@ return [
     'rsa_private_key' => env('BYBIT_RSA_PRIVATE_KEY', null),
     'rsa_public_key' => env('BYBIT_RSA_PUBLIC_KEY', null),
     'signature' => env('BYBIT_SIGNATURE', 'hmac'),
+    'throw_on_error' => env('BYBIT_THROW_ON_ERROR', false),
+    'websocket_category' => env('BYBIT_WEBSOCKET_CATEGORY', 'spot'),
     'fees' => [
         'spot' => [
             'Non-VIP' => ['maker' => 0.0010, 'taker' => 0.0010],

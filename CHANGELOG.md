@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.1 - 2026-04-13
+### Added
+- Laravel 13 support
+
+### Changed
+- Updated `illuminate/support` dependency to include `^13.0`
+- Updated documentation badges to reflect Laravel 13 compatibility
+
 ## 0.2.0 - 2026-01-18
 ### Added
 - **REST API Methods:**
