@@ -18,7 +18,7 @@
 A PHP library for working with the Bybit V5 API. Supports REST and WebSockets, and works both standalone and with
 Laravel.
 
-[Features](#features) • [Installation](#installation) • [Quick Start](#quick-start) • [API Methods](#api-methods) • [WebSocket](#websocket-streaming) • [Examples](#examples)
+[Features](#features) • [Installation](#installation) • [Quick Start](#quick-start) • [API Methods](#api-methods) • [TradFi](#tradfi) • [WebSocket](#websocket-streaming) • [Examples](#examples)
 
 </div>
 
@@ -27,6 +27,7 @@ Laravel.
 ## Features
 
 - Full Bybit V5 API coverage (spot, linear, inverse, options)
+- **TradFi support** — gold, silver, forex, stock CFDs, and indices via `BybitTradFi`
 - HMAC-SHA256 and RSA-SHA256 signatures
 - WebSocket for real-time data (orderbook, trades, klines, account updates)
 - Testnet and demo trading support
@@ -636,6 +637,127 @@ class BybitWebSocketListener extends Command
 ```
 
 Run with: `php artisan bybit:listen BTCUSDT`
+
+---
+
+## TradFi
+
+The `BybitTradFi` class provides a dedicated interface for trading traditional financial instruments — gold, silver, forex pairs, stock CFDs, and indices — all available on Bybit as linear perpetuals through the standard V5 API.
+
+Instantiate by passing an existing `BybitClient`:
+
+```php
+use Tigusigalpa\ByBit\BybitClient;
+use Tigusigalpa\ByBit\BybitTradFi;
+
+$client = new BybitClient(
+    apiKey: 'your_api_key',
+    apiSecret: 'your_api_secret',
+    testnet: true
+);
+
+$tradfi = new BybitTradFi($client);
+```
+
+### Predefined Symbol Lists
+
+```php
+BybitTradFi::METALS;       // ['XAUUSD', 'XAGUSD', 'XPTUSD']
+BybitTradFi::FOREX_MAJORS; // ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'NZDUSD', 'USDCAD']
+BybitTradFi::FOREX_MINORS; // ['EURGBP', 'EURJPY', 'GBPJPY', ...]
+BybitTradFi::US_STOCKS;    // ['AAPLUSDT', 'TSLAUSDT', 'NVDAUSDT', ...]
+BybitTradFi::INDICES;      // ['US500USD', 'US100USD', 'US30USD', 'DE40USD', 'JP225USD', ...]
+```
+
+### Market Data
+
+```php
+// Get instruments, optionally filtered by asset class:
+// 'metal', 'forex', 'stock', 'index', 'commodity', or '' for all
+$instruments = $tradfi->getInstruments('forex');
+
+// Single ticker
+$gold = $tradfi->getTicker('XAUUSD');
+echo $gold['result']['list'][0]['lastPrice'];
+
+// Shortcut tickers
+$metals  = $tradfi->getMetalsTickers();  // XAUUSD, XAGUSD, XPTUSD
+$forex   = $tradfi->getForexTickers();   // major pairs
+$stocks  = $tradfi->getStockTickers();   // US stock CFDs
+$indices = $tradfi->getIndexTickers();   // US500USD, DE40USD, etc.
+
+// Kline / candlestick data
+// interval: 1, 3, 5, 15, 30, 60, 120, 240, 360, 720, D, W, M
+$klines = $tradfi->getKline('XAUUSD', '60', 50);
+
+// Order book depth (1, 25, 50, 100, 200)
+$orderbook = $tradfi->getOrderbook('EURUSD', 25);
+
+// Overnight swap fee info
+$swap = $tradfi->getSwapFee('XAUUSD');
+
+// Trading fee rate
+$fee = $tradfi->getFeeRate('EURUSD');
+```
+
+### Trading
+
+```php
+// Place a limit buy order on gold with TP/SL
+$order = $tradfi->placeOrder(
+    symbol:    'XAUUSD',
+    side:      'Buy',
+    orderType: 'Limit',
+    qty:       '0.01',
+    price:     '3200',
+    extra: [
+        'timeInForce' => 'GTC',
+        'takeProfit'  => '3350',
+        'stopLoss'    => '3100',
+    ]
+);
+
+// Place a market sell on EURUSD
+$order = $tradfi->placeOrder('EURUSD', 'Sell', 'Market', '1');
+
+// Close an open long position at market price
+$tradfi->closePosition('XAUUSD', 'Buy', '0.01');
+
+// Set leverage
+$tradfi->setLeverage('XAUUSD', 10);
+
+// Cancel an order
+$tradfi->cancelOrder('XAUUSD', orderId: 'abc123');
+
+// Open orders
+$orders = $tradfi->getOpenOrders('XAUUSD');
+
+// Order & trade history
+$history = $tradfi->getOrderHistory('EURUSD', limit: 50);
+$trades  = $tradfi->getTradeHistory('XAUUSD', limit: 50);
+
+// Open positions (pass '' for all TradFi positions)
+$positions = $tradfi->getPositions('XAUUSD');
+```
+
+### Symbol Detection Helper
+
+```php
+BybitTradFi::isTradFiSymbol('XAUUSD');  // true  — gold
+BybitTradFi::isTradFiSymbol('EURUSD');  // true  — forex
+BybitTradFi::isTradFiSymbol('US500USD'); // true  — index
+BybitTradFi::isTradFiSymbol('BTCUSDT'); // false — crypto
+BybitTradFi::isTradFiSymbol('ETHUSDT'); // false — crypto
+
+// Filter TradFi positions from a mixed position list
+$allPositions = $client->getPositions(['category' => 'linear']);
+$tradfiOnly   = array_filter(
+    $allPositions['result']['list'] ?? [],
+    fn($p) => BybitTradFi::isTradFiSymbol($p['symbol'])
+);
+```
+
+> **Note:** TradFi instruments follow **market hours** (unlike 24/7 crypto). Outside trading sessions the API may return empty order books or stale prices. Swap fees apply when holding positions past daily market close — check `getSwapFee()` before sizing.
 
 ---
 

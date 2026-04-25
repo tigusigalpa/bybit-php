@@ -17,7 +17,7 @@
 
 PHP-библиотека для работы с Bybit V5 API. Поддерживает REST и WebSocket, работает как standalone, так и с Laravel.
 
-[Возможности](#возможности) • [Установка](#установка) • [Быстрый старт](#быстрый-старт) • [API методы](#api-методы) • [WebSocket](#websocket-потоки) • [Примеры](#примеры)
+[Возможности](#возможности) • [Установка](#установка) • [Быстрый старт](#быстрый-старт) • [API методы](#api-методы) • [TradFi](#tradfi) • [WebSocket](#websocket-потоки) • [Примеры](#примеры)
 
 </div>
 
@@ -26,6 +26,7 @@ PHP-библиотека для работы с Bybit V5 API. Поддержив
 ## Возможности
 
 - Полное покрытие Bybit V5 API (spot, linear, inverse, options)
+- **Поддержка TradFi** — золото, серебро, валютные пары, CFD акций и индексы через `BybitTradFi`
 - Подписи HMAC-SHA256 и RSA-SHA256
 - WebSocket для данных в реальном времени (стакан, сделки, свечи, обновления аккаунта)
 - Поддержка testnet и demo trading
@@ -635,6 +636,126 @@ class BybitWebSocketListener extends Command
 ```
 
 Запуск: `php artisan bybit:listen BTCUSDT`
+
+---
+
+## TradFi
+
+Класс `BybitTradFi` предоставляет удобный интерфейс для торговли традиционными финансовыми инструментами — золотом, серебром, валютными парами, CFD на акции и индексы. Все они доступны на Bybit как линейные бессрочные контракты через стандартный V5 API.
+
+Создайте экземпляр, передав существующий `BybitClient`:
+
+```php
+use Tigusigalpa\ByBit\BybitClient;
+use Tigusigalpa\ByBit\BybitTradFi;
+
+$client = new BybitClient(
+    apiKey: 'ваш_api_ключ',
+    apiSecret: 'ваш_секретный_ключ',
+    testnet: true
+);
+
+$tradfi = new BybitTradFi($client);
+```
+
+### Предопределённые списки символов
+
+```php
+BybitTradFi::METALS;       // ['XAUUSD', 'XAGUSD', 'XPTUSD']
+BybitTradFi::FOREX_MAJORS; // ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'NZDUSD', 'USDCAD']
+BybitTradFi::FOREX_MINORS; // ['EURGBP', 'EURJPY', 'GBPJPY', ...]
+BybitTradFi::US_STOCKS;    // ['AAPLUSDT', 'TSLAUSDT', 'NVDAUSDT', ...]
+BybitTradFi::INDICES;      // ['US500USD', 'US100USD', 'US30USD', 'DE40USD', 'JP225USD', ...]
+```
+
+### Рыночные данные
+
+```php
+// Получить инструменты с фильтром по классу активов:
+// 'metal', 'forex', 'stock', 'index', 'commodity' или '' для всех
+$instruments = $tradfi->getInstruments('forex');
+
+// Тикер одного символа
+$gold = $tradfi->getTicker('XAUUSD');
+echo $gold['result']['list'][0]['lastPrice'];
+
+// Шорткаты для групп инструментов
+$metals  = $tradfi->getMetalsTickers();  // XAUUSD, XAGUSD, XPTUSD
+$forex   = $tradfi->getForexTickers();   // основные валютные пары
+$stocks  = $tradfi->getStockTickers();   // CFD на акции США
+$indices = $tradfi->getIndexTickers();   // US500USD, DE40USD и др.
+
+// Данные свечей (интервал: 1, 3, 5, 15, 30, 60, 120, 240, 360, 720, D, W, M)
+$klines = $tradfi->getKline('XAUUSD', '60', 50);
+
+// Глубина стакана (1, 25, 50, 100, 200)
+$orderbook = $tradfi->getOrderbook('EURUSD', 25);
+
+// Информация о свопе (ночная комиссия за перенос позиции)
+$swap = $tradfi->getSwapFee('XAUUSD');
+
+// Ставка торговой комиссии
+$fee = $tradfi->getFeeRate('EURUSD');
+```
+
+### Торговля
+
+```php
+// Разместить лимитный ордер на покупку золота с TP/SL
+$order = $tradfi->placeOrder(
+    symbol:    'XAUUSD',
+    side:      'Buy',
+    orderType: 'Limit',
+    qty:       '0.01',
+    price:     '3200',
+    extra: [
+        'timeInForce' => 'GTC',
+        'takeProfit'  => '3350',
+        'stopLoss'    => '3100',
+    ]
+);
+
+// Рыночный ордер на продажу EURUSD
+$order = $tradfi->placeOrder('EURUSD', 'Sell', 'Market', '1');
+
+// Закрыть открытую длинную позицию по рынку
+$tradfi->closePosition('XAUUSD', 'Buy', '0.01');
+
+// Установить плечо
+$tradfi->setLeverage('XAUUSD', 10);
+
+// Отменить ордер
+$tradfi->cancelOrder('XAUUSD', orderId: 'abc123');
+
+// Открытые ордера
+$orders = $tradfi->getOpenOrders('XAUUSD');
+
+// История ордеров и сделок
+$history = $tradfi->getOrderHistory('EURUSD', limit: 50);
+$trades  = $tradfi->getTradeHistory('XAUUSD', limit: 50);
+
+// Открытые позиции (передайте '' для всех TradFi позиций)
+$positions = $tradfi->getPositions('XAUUSD');
+```
+
+### Хелпер для определения символа
+
+```php
+BybitTradFi::isTradFiSymbol('XAUUSD');   // true  — золото
+BybitTradFi::isTradFiSymbol('EURUSD');   // true  — форекс
+BybitTradFi::isTradFiSymbol('US500USD'); // true  — индекс
+BybitTradFi::isTradFiSymbol('BTCUSDT');  // false — крипто
+BybitTradFi::isTradFiSymbol('ETHUSDT');  // false — крипто
+
+// Отфильтровать TradFi позиции из смешанного списка
+$allPositions = $client->getPositions(['category' => 'linear']);
+$tradfiOnly   = array_filter(
+    $allPositions['result']['list'] ?? [],
+    fn($p) => BybitTradFi::isTradFiSymbol($p['symbol'])
+);
+```
+
+> **Важно:** TradFi инструменты торгуются по **расписанию рынка** (в отличие от крипты, которая работает 24/7). Вне торговых сессий API может возвращать пустой стакан или устаревшие цены. При удержании позиции через конец торгового дня начисляется своп — используйте `getSwapFee()` для проверки ставки перед открытием позиции.
 
 ---
 
