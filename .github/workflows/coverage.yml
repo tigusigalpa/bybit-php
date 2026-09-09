@@ -36,7 +36,7 @@ jobs:
         run: XDEBUG_MODE=coverage php tests/coverage.php
 
       - name: Store coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-clover
           path: coverage.xml
