@@ -1,6 +1,9 @@
 # Composer
 /vendor/
-composer.lock
+/tests/pest/vendor/
+/tests/pest/.phpunit.cache/
+/tests/pest/.phpunit.result.cache
+/composer.lock
 
 # PHPUnit
 /phpunit.xml

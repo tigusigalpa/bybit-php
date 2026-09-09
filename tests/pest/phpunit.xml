@@ -2,12 +2,12 @@
 <phpunit bootstrap="vendor/autoload.php" colors="true" cacheDirectory=".phpunit.cache">
     <testsuites>
         <testsuite name="Unit">
-            <directory suffix="Test.php">tests/Unit</directory>
+            <directory suffix="Test.php">../Unit</directory>
         </testsuite>
     </testsuites>
     <source>
         <include>
-            <directory suffix=".php">src</directory>
+            <directory suffix=".php">../../src</directory>
         </include>
     </source>
 </phpunit>

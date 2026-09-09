@@ -32,7 +32,10 @@ jobs:
         run: composer validate --no-check-publish
 
       - name: Resolve package dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: composer update --no-dev --prefer-dist --no-interaction --no-progress
+
+      - name: Install locked Pest test dependencies
+        run: composer --working-dir=tests/pest install --prefer-dist --no-interaction --no-progress
 
       - name: Generate compatibility coverage report
         run: XDEBUG_MODE=coverage php tests/coverage.php

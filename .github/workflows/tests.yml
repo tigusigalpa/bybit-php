@@ -40,7 +40,7 @@ jobs:
         run: composer test
 
       - name: Check PHP syntax
-        run: find src config tests -name '*.php' -print0 | xargs -0 -n1 php -l
+        run: find src config tests -path tests/pest/vendor -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
 
   pest:
     name: Pest on PHP ${{ matrix.php }}
@@ -64,8 +64,11 @@ jobs:
       - name: Validate Composer metadata
         run: composer validate --no-check-publish
 
-      - name: Resolve package and development dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+      - name: Resolve package dependencies
+        run: composer update --no-dev --prefer-dist --no-interaction --no-progress
+
+      - name: Install locked Pest test dependencies
+        run: composer --working-dir=tests/pest install --prefer-dist --no-interaction --no-progress
 
       - name: Run compatibility tests
         run: composer test
@@ -74,4 +77,4 @@ jobs:
         run: composer test:unit
 
       - name: Check PHP syntax
-        run: find src config tests -name '*.php' -print0 | xargs -0 -n1 php -l
+        run: find src config tests -path tests/pest/vendor -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l

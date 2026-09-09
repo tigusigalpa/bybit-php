@@ -1,0 +1,26 @@
+{
+  "name": "tigusigalpa/bybit-php-pest-tests",
+  "description": "Isolated Pest test environment for bybit-php",
+  "private": true,
+  "license": "MIT",
+  "require": {
+    "php": "^8.3",
+    "guzzlehttp/guzzle": "^7.8",
+    "textalk/websocket": "^1.6"
+  },
+  "require-dev": {
+    "pestphp/pest": "^4.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Tigusigalpa\\ByBit\\": "../../src/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

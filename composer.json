@@ -17,17 +17,9 @@
       "Tigusigalpa\\ByBit\\": "src/"
     }
   },
-  "require-dev": {
-    "pestphp/pest": "^4.0"
-  },
   "scripts": {
     "test": "@php tests/run.php",
-    "test:unit": "pest --configuration=phpunit.xml.dist --colors=always"
-  },
-  "config": {
-    "allow-plugins": {
-      "pestphp/pest-plugin": true
-    }
+    "test:unit": "@php tests/pest/run.php"
   },
   "extra": {
     "laravel": {

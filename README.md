@@ -85,6 +85,7 @@ Laravel auto-discovery регистрирует service provider и facade ав�
 composer test
 
 # Pest unit tests: PHP 8.3+
+composer install --working-dir=tests/pest
 composer test:unit
 ```
 
