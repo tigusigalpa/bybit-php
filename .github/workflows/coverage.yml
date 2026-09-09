@@ -34,14 +34,19 @@ jobs:
       - name: Resolve package dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
 
-      - name: Generate Clover coverage report
+      - name: Generate compatibility coverage report
         run: XDEBUG_MODE=coverage php tests/coverage.php
 
-      - name: Store coverage report
+      - name: Generate Pest unit coverage report
+        run: XDEBUG_MODE=coverage composer test:unit -- --coverage-clover=coverage-pest.xml
+
+      - name: Store coverage reports
         uses: actions/upload-artifact@v4
         with:
           name: coverage-clover
-          path: coverage.xml
+          path: |
+            coverage.xml
+            coverage-pest.xml
           if-no-files-found: error
 
       - name: Upload coverage to Codecov
@@ -49,7 +54,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ env.CODECOV_TOKEN }}
-          files: coverage.xml
+          files: coverage.xml,coverage-pest.xml
           flags: unittests
           name: bybit-php
           fail_ci_if_error: true

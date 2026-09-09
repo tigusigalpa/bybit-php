@@ -11,13 +11,13 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  compatibility:
     name: PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        php: ['7.4', '8.0', '8.1', '8.2', '8.3', '8.4']
+        php: ['7.4', '8.0', '8.1', '8.2']
 
     steps:
       - name: Check out source
@@ -34,10 +34,44 @@ jobs:
         run: composer validate --no-check-publish
 
       - name: Resolve package dependencies
-        run: composer update --prefer-dist --no-interaction --no-progress
+        run: composer update --no-dev --prefer-dist --no-interaction --no-progress
 
       - name: Run tests
         run: composer test
+
+      - name: Check PHP syntax
+        run: find src config tests -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  pest:
+    name: Pest on PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4']
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer metadata
+        run: composer validate --no-check-publish
+
+      - name: Resolve package and development dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Run compatibility tests
+        run: composer test
+
+      - name: Run Pest unit tests
+        run: composer test:unit
 
       - name: Check PHP syntax
         run: find src config tests -name '*.php' -print0 | xargs -0 -n1 php -l
