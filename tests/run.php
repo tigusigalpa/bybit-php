@@ -154,6 +154,26 @@ namespace {
         new BybitClient('key', 'secret', true, 'global', 5000, 'hmac', null, null, null, true);
     }, 'Testnet and Demo Trading must be mutually exclusive');
 
+    $demoHttp = new FakeHttpClient();
+    $demoClient = BybitClient::demo('key', 'secret', 5000, 'hmac', null, $demoHttp);
+    assertSameValue('https://api-demo.bybit.com', $demoClient->endpoint(), 'Demo factory must use the isolated Demo Trading endpoint');
+    $demoClient->requestDemoFundsSimple('usdt', '10000');
+    assertSameValue('/v5/account/demo-apply-money', $demoHttp->requests[0]['path'], 'Demo funds must use the Demo Trading endpoint');
+    assertSameValue(
+        ['adjustType' => 0, 'utaDemoApplyMoney' => [['coin' => 'USDT', 'amountStr' => '10000']]],
+        json_decode($demoHttp->requests[0]['options'][RequestOptions::BODY], true),
+        'Simple demo funds helper must build Bybit\'s expected payload'
+    );
+    $demoClient->getDemoApiKeyInfo();
+    assertSameValue('/v5/user/query-api', $demoHttp->requests[1]['path'], 'Demo API key info must use the Demo Trading key');
+    assertThrows(\InvalidArgumentException::class, static function () use ($demoClient): void {
+        $demoClient->requestDemoFundsSimple('XRP', '1');
+    }, 'Unsupported demo fund coins must be rejected before sending a request');
+    assertThrows(\LogicException::class, static function (): void {
+        (new BybitClient('key', 'secret'))->getDemoApiKeyInfo();
+    }, 'Demo API key info must reject a production client');
+    assertSameValue('https://api-testnet.bybit.com', (new BybitClient('key', 'secret', true, 'jp'))->endpoint(), 'Testnet must use Bybit\'s standard Testnet REST domain');
+
     $orderClient = new BybitClient('key', 'secret', false, 'global', 5000, 'hmac', null, new FakeHttpClient());
     assertThrows(\InvalidArgumentException::class, static function () use ($orderClient): void {
         $orderClient->placeOrder('spot', 'BTCUSDT', 'limit', null, 'Buy', null, 1);
@@ -164,6 +184,7 @@ namespace {
 
     assertSameValue('wss://stream-demo.bybit.com/v5/private', (new BybitWebSocket('key', 'secret', false, 'global', true, 'linear', true))->endpoint(), 'Demo private streams must use the demo endpoint');
     assertSameValue('wss://stream.bybit.com/v5/public/linear', (new BybitWebSocket(null, null, false, 'global', false, 'linear', true))->endpoint(), 'Demo public data must use mainnet stream');
+    assertSameValue('wss://stream-testnet.bybit.com/v5/public/linear', (new BybitWebSocket(null, null, true, 'jp', false, 'linear'))->endpoint(), 'Testnet must use Bybit\'s standard Testnet WebSocket domain');
     assertSameValue('wss://stream.bybit.tr/v5/public/spread', (new BybitWebSocket(null, null, false, 'tr', false, 'spread'))->endpoint(), 'Turkey and spread stream routes must be current');
 
     assertSameValue(true, BybitTradFi::isTradFiSymbol('XAUUSD'), 'Gold must be detected as TradFi');

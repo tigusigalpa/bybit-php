@@ -501,19 +501,8 @@ $fee = $client->computeFee('spot', 1000.0, 'Non-VIP', 'taker');
 Demo Trading is an isolated, limited-function environment at `api-demo.bybit.com`. Use a production account's Demo Trading API key, never combine it with Testnet, and expect Demo orders to be retained for seven days.
 
 ```php
-// Initialize demo trading client
-$demoClient = new BybitClient(
-    apiKey: 'your_demo_api_key',
-    apiSecret: 'your_demo_api_secret',
-    testnet: false,
-    region: 'global',
-    recvWindow: 5000,
-    signature: 'hmac',
-    rsaPrivateKey: null,
-    http: null,
-    fees: null,
-    demoTrading: true  // Enable demo trading mode
-);
+// The factory always selects api-demo.bybit.com, never Testnet.
+$demoClient = BybitClient::demo('your_demo_api_key', 'your_demo_api_secret');
 
 // Create demo account (use production API key with api.bybit.com)
 $productionClient = new BybitClient('prod_key', 'prod_secret');
@@ -528,6 +517,12 @@ $fundingResult = $demoClient->requestDemoFunds([
         ['coin' => 'BTC', 'amountStr' => '1']
     ]
 ]);
+
+// Convenience helper for one supported coin: BTC, ETH, USDT, or USDC.
+$demoClient->requestDemoFundsSimple('USDT', '10000');
+
+// Uses the Demo Trading key against api-demo.bybit.com.
+$apiKeyInfo = $demoClient->getDemoApiKeyInfo();
 
 // Supported trading methods use the same V5 payloads in demo mode
 $order = $demoClient->createOrder([

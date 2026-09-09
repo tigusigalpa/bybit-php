@@ -67,6 +67,30 @@ class BybitClient
         $this->throwOnError = $throwOnError;
     }
 
+    /**
+     * Create a client for Bybit's isolated Demo Trading environment.
+     *
+     * The factory deliberately has no Testnet or region argument: demo keys belong
+     * to api-demo.bybit.com and must never be used with the Testnet endpoints.
+     */
+    public static function demo(string $apiKey, ?string $apiSecret, int $recvWindow = 5000, string $signature = 'hmac', ?string $rsaPrivateKey = null, ?Client $http = null, ?array $fees = null, bool $throwOnError = false, ?string $brokerId = null): self
+    {
+        return new self(
+            $apiKey,
+            $apiSecret,
+            false,
+            'global',
+            $recvWindow,
+            $signature,
+            $rsaPrivateKey,
+            $http,
+            $fees,
+            true,
+            $throwOnError,
+            $brokerId
+        );
+    }
+
     public function setThrowOnError(bool $throw): self
     {
         $this->throwOnError = $throw;
@@ -77,11 +101,7 @@ class BybitClient
     {
         if ($this->demoTrading) return 'https://api-demo.bybit.com';
         if ($this->testnet) {
-            switch ($this->region) {
-                case 'jp': return 'https://api-testnet.manepa.jp';
-                case 'hk': return 'https://api-testnet.spark-fintech.com';
-                default: return 'https://api-testnet.bybit.com';
-            }
+            return 'https://api-testnet.bybit.com';
         }
         switch ($this->region) {
             case 'nl': return 'https://api.bybit.nl';
@@ -601,6 +621,31 @@ class BybitClient
         return $this->request('POST', '/v5/account/demo-apply-money', $params);
     }
 
+    /**
+     * Request or reduce the balance of one supported Demo Trading coin.
+     */
+    public function requestDemoFundsSimple(string $coin, string $amount, int $adjustType = 0): array
+    {
+        $coin = strtoupper(trim($coin));
+        if (!in_array($coin, ['BTC', 'ETH', 'USDT', 'USDC'], true)) {
+            throw new \InvalidArgumentException('Demo funds support BTC, ETH, USDT, and USDC.');
+        }
+        if (trim($amount) === '') {
+            throw new \InvalidArgumentException('Demo fund amount cannot be empty.');
+        }
+        if (!in_array($adjustType, [0, 1], true)) {
+            throw new \InvalidArgumentException('Demo fund adjustType must be 0 (add) or 1 (reduce).');
+        }
+
+        return $this->requestDemoFunds([
+            'adjustType' => $adjustType,
+            'utaDemoApplyMoney' => [[
+                'coin' => $coin,
+                'amountStr' => $amount,
+            ]],
+        ]);
+    }
+
     public function createDemoAccount(): array
     {
         $this->assertProductionMainnet();
@@ -625,6 +670,15 @@ class BybitClient
         return $this->request('GET', '/v5/user/query-api');
     }
 
+    /**
+     * Get information about the key currently used by the Demo Trading client.
+     */
+    public function getDemoApiKeyInfo(): array
+    {
+        $this->assertDemoTrading();
+        return $this->getApiKeyInfo();
+    }
+
     public function deleteDemoApiKey(array $params): array
     {
         $this->assertProductionMainnet();
@@ -642,7 +696,7 @@ class BybitClient
     private function assertDemoTrading(): void
     {
         if (!$this->demoTrading) {
-            throw new \LogicException('Demo funds can only be requested with a Demo Trading client.');
+            throw new \LogicException('This operation requires a Demo Trading client.');
         }
     }
 

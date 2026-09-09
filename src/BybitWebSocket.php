@@ -73,16 +73,6 @@ class BybitWebSocket
         }
 
         if ($this->testnet) {
-            if ($this->region === 'jp') {
-                return $this->isPrivate
-                    ? 'wss://stream-testnet.manepa.jp/v5/private'
-                    : 'wss://stream-testnet.manepa.jp/v5/public/' . $publicPath;
-            }
-            if ($this->region === 'hk') {
-                return $this->isPrivate
-                    ? 'wss://stream-testnet.spark-fintech.com/v5/private'
-                    : 'wss://stream-testnet.spark-fintech.com/v5/public/' . $publicPath;
-            }
             return $this->isPrivate 
                 ? 'wss://stream-testnet.bybit.com/v5/private'
                 : 'wss://stream-testnet.bybit.com/v5/public/' . $publicPath;
@@ -271,6 +261,11 @@ class BybitWebSocket
     public function subscribeWallet(): void
     {
         $this->subscribe(['wallet']);
+    }
+
+    public function subscribeGreeks(): void
+    {
+        $this->subscribe(['greeks']);
     }
 
     public function onMessage(callable $callback): void

@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+### Added
+- Explicit `BybitClient::demo()` factory, a single-coin demo-funds helper, Demo API-key-info helper, and WebSocket `greeks` subscription.
+
+### Fixed
+- Testnet now always uses Bybit's documented global Testnet REST and WebSocket domains; regional production domains are no longer applied to Testnet.
+
+## 1.4.0 - 2026-09-09
 ### Fixed
 - Signed REST requests now send the exact canonical query string or JSON body that was used to calculate the signature.
 - Corrected V5 routes for transferable amount and account instruments info.
