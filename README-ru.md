@@ -12,7 +12,6 @@
 [![Покрытие](https://github.com/tigusigalpa/bybit-php/actions/workflows/coverage.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/coverage.yml)
 [![Безопасность](https://github.com/tigusigalpa/bybit-php/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/security.yml)
 [![Scorecard](https://github.com/tigusigalpa/bybit-php/actions/workflows/scorecard.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/scorecard.yml)
-[![Codecov](https://codecov.io/gh/tigusigalpa/bybit-php/graph/badge.svg)](https://codecov.io/gh/tigusigalpa/bybit-php)
 
 **Язык:** [English](README.md) | Русский
 
