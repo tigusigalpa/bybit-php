@@ -10,7 +10,7 @@
 [![WebSocket](https://img.shields.io/badge/WebSocket-Supported-brightgreen.svg)](https://bybit-exchange.github.io/docs/v5/ws/connect)
 [![Tests](https://github.com/tigusigalpa/bybit-php/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/tests.yml)
 [![Coverage](https://github.com/tigusigalpa/bybit-php/actions/workflows/coverage.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/coverage.yml)
-[![CodeQL](https://github.com/tigusigalpa/bybit-php/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/codeql.yml)
+[![Security](https://github.com/tigusigalpa/bybit-php/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/security.yml)
 [![Scorecard](https://github.com/tigusigalpa/bybit-php/actions/workflows/scorecard.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/scorecard.yml)
 [![Codecov](https://codecov.io/gh/tigusigalpa/bybit-php/graph/badge.svg)](https://codecov.io/gh/tigusigalpa/bybit-php)
 
@@ -987,8 +987,4 @@ Copyright (c) 2026 Igor Sazonov
 
 ---
 
-<div align="center">
-
 [Report Bug](https://github.com/tigusigalpa/bybit-php/issues) • [Request Feature](https://github.com/tigusigalpa/bybit-php/issues) • [Docs](https://bybit-exchange.github.io/docs/v5/guide)
-
-</div>

@@ -1,6 +1,6 @@
-<div align="center">
+# Bybit PHP/Laravel Client/SDK/Library
 
-# Bybit PHP SDK
+![ByBit PHP/Laravel SDK](https://i.postimg.cc/wTK7XM5Z/bybit-php-laravel-banner.jpg)
 
 ### V5 API клиент для PHP и Laravel
 
@@ -10,11 +10,9 @@
 [![WebSocket](https://img.shields.io/badge/WebSocket-Supported-brightgreen.svg)](https://bybit-exchange.github.io/docs/v5/ws/connect)
 [![Тесты](https://github.com/tigusigalpa/bybit-php/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/tests.yml)
 [![Покрытие](https://github.com/tigusigalpa/bybit-php/actions/workflows/coverage.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/coverage.yml)
-[![CodeQL](https://github.com/tigusigalpa/bybit-php/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/codeql.yml)
+[![Безопасность](https://github.com/tigusigalpa/bybit-php/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/security.yml)
 [![Scorecard](https://github.com/tigusigalpa/bybit-php/actions/workflows/scorecard.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/scorecard.yml)
 [![Codecov](https://codecov.io/gh/tigusigalpa/bybit-php/graph/badge.svg)](https://codecov.io/gh/tigusigalpa/bybit-php)
-
-![ByBit PHP SDK](https://i.postimg.cc/T3PpqGyn/bybit-php-banner-v2.jpg)
 
 **Язык:** [English](README.md) | Русский
 
@@ -23,8 +21,6 @@
 PHP-библиотека для работы с Bybit V5 API. Поддерживает REST и WebSocket, работает как standalone, так и с Laravel.
 
 [Возможности](#возможности) • [Установка](#установка) • [Быстрый старт](#быстрый-старт) • [API методы](#api-методы) • [TradFi](#tradfi) • [WebSocket](#websocket-потоки) • [Примеры](#примеры)
-
-</div>
 
 ---
 
@@ -989,8 +985,4 @@ Copyright (c) 2026 Igor Sazonov
 
 ---
 
-<div align="center">
-
 [Сообщить об ошибке](https://github.com/tigusigalpa/bybit-php/issues) • [Запросить функцию](https://github.com/tigusigalpa/bybit-php/issues) • [Документация](https://bybit-exchange.github.io/docs/v5/guide)
-
-</div>

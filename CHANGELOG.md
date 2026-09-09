@@ -11,7 +11,7 @@
 - Batch order, execution history, account, asset, spot-margin, and demo-account helper methods aligned with currently supported Demo Trading endpoints.
 - Demo Trading and RSA support for private WebSocket streams; the Laravel WebSocket singleton can now be configured as private.
 - Optional broker ID configuration, typed HTTP exceptions, and a dependency-free signed-request test suite.
-- GitHub Actions workflows for PHP test matrices, Xdebug coverage and Codecov, CodeQL, OpenSSF Scorecard, and Dependabot updates.
+- GitHub Actions workflows for PHP test matrices, Xdebug coverage and Codecov, Composer security audit, Dependency Review, OpenSSF Scorecard, and Dependabot updates.
 
 ### Changed
 - Testnet and Demo Trading are now explicitly mutually exclusive.
