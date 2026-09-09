@@ -21,7 +21,8 @@ class BybitServiceProvider extends ServiceProvider
                 null,
                 $config['fees'] ?? null,
                 (bool)($config['demo_trading'] ?? false),
-                (bool)($config['throw_on_error'] ?? false)
+                (bool)($config['throw_on_error'] ?? false),
+                $config['broker_id'] ?? null
             );
         });
         $this->app->alias(BybitClient::class, 'bybit');
@@ -33,8 +34,11 @@ class BybitServiceProvider extends ServiceProvider
                 $config['api_secret'] ?? null,
                 (bool)($config['testnet'] ?? false),
                 $config['region'] ?? 'global',
-                false,
-                $config['websocket_category'] ?? 'spot'
+                (bool)($config['websocket_private'] ?? false),
+                $config['websocket_category'] ?? 'spot',
+                (bool)($config['demo_trading'] ?? false),
+                $config['signature'] ?? 'hmac',
+                $config['rsa_private_key'] ?? null
             );
         });
         $this->app->alias(BybitWebSocket::class, 'bybit.websocket');

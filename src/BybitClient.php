@@ -3,6 +3,7 @@ namespace Tigusigalpa\ByBit;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
+use Tigusigalpa\ByBit\Exceptions\BybitHttpException;
 
 class BybitClient
 {
@@ -18,17 +19,36 @@ class BybitClient
     protected array $fees;
     protected float $lastRequestTime = 0;
     protected bool $throwOnError = false;
+    protected ?string $brokerId;
 
-    public function __construct(string $apiKey, ?string $apiSecret, bool $testnet = false, string $region = 'global', int $recvWindow = 5000, string $signature = 'hmac', ?string $rsaPrivateKey = null, ?Client $http = null, ?array $fees = null, bool $demoTrading = false, bool $throwOnError = false)
+    public function __construct(string $apiKey, ?string $apiSecret, bool $testnet = false, string $region = 'global', int $recvWindow = 5000, string $signature = 'hmac', ?string $rsaPrivateKey = null, ?Client $http = null, ?array $fees = null, bool $demoTrading = false, bool $throwOnError = false, ?string $brokerId = null)
     {
+        $signature = strtolower(trim($signature));
+        if ($signature === '') {
+            $signature = 'hmac';
+        }
+        if (!in_array($signature, ['hmac', 'rsa'], true)) {
+            throw new \InvalidArgumentException('Unsupported signature type. Use hmac or rsa.');
+        }
+        if ($signature === 'rsa' && empty($rsaPrivateKey)) {
+            throw new \InvalidArgumentException('RSA signature requires an RSA private key.');
+        }
+        if ($testnet && $demoTrading) {
+            throw new \InvalidArgumentException('Testnet and Demo Trading cannot be enabled together.');
+        }
+        if ($recvWindow <= 0) {
+            throw new \InvalidArgumentException('Receive window must be greater than zero.');
+        }
+
         $this->apiKey = $apiKey;
         $this->apiSecret = $apiSecret;
         $this->testnet = $testnet;
         $this->demoTrading = $demoTrading;
-        $this->region = $region;
+        $this->region = strtolower(trim($region)) ?: 'global';
         $this->recvWindow = $recvWindow;
         $this->signature = $signature;
         $this->rsaPrivateKey = $rsaPrivateKey;
+        $this->brokerId = $brokerId !== null && trim($brokerId) !== '' ? trim($brokerId) : null;
         $this->http = $http ?: new Client(['base_uri' => $this->baseUri()]);
         $this->fees = $fees ?: [
             'spot' => [
@@ -56,13 +76,23 @@ class BybitClient
     public function baseUri(): string
     {
         if ($this->demoTrading) return 'https://api-demo.bybit.com';
-        if ($this->testnet) return 'https://api-testnet.bybit.com';
-        switch (strtolower($this->region)) {
+        if ($this->testnet) {
+            switch ($this->region) {
+                case 'jp': return 'https://api-testnet.manepa.jp';
+                case 'hk': return 'https://api-testnet.spark-fintech.com';
+                default: return 'https://api-testnet.bybit.com';
+            }
+        }
+        switch ($this->region) {
             case 'nl': return 'https://api.bybit.nl';
-            case 'tr': return 'https://api.bybit-tr.com';
+            case 'tr': return 'https://api.bybit.tr';
             case 'kz': return 'https://api.bybit.kz';
             case 'ge': return 'https://api.bybitgeorgia.ge';
             case 'ae': return 'https://api.bybit.ae';
+            case 'eu': return 'https://api.bybit.eu';
+            case 'id': return 'https://api.bybit.id';
+            case 'jp': return 'https://api.manepa.jp';
+            case 'hk': return 'https://api.spark-fintech.com';
             default: return 'https://api.bybit.com';
         }
     }
@@ -74,36 +104,38 @@ class BybitClient
 
     protected function signString(string $string): string
     {
-        if ($this->signature === 'rsa' && $this->rsaPrivateKey) {
+        if ($this->signature === 'rsa') {
             $key = openssl_pkey_get_private($this->rsaPrivateKey);
-            openssl_sign($string, $signature, $key, OPENSSL_ALGO_SHA256);
+            if ($key === false) {
+                throw new \RuntimeException('Unable to load the configured RSA private key.');
+            }
+            if (!openssl_sign($string, $signature, $key, OPENSSL_ALGO_SHA256)) {
+                throw new \RuntimeException('Unable to create the RSA signature.');
+            }
             return base64_encode($signature);
         }
-        return strtolower(hash_hmac('sha256', $string, (string)$this->apiSecret));
+        return hash_hmac('sha256', $string, (string)$this->apiSecret);
     }
 
-    protected function headers(string $method, string $path, array $params): array
+    /**
+     * Build authentication headers for an already serialized query string or body.
+     */
+    protected function headers(string $method, string $payload): array
     {
         $ts = $this->timestamp();
         $recv = (string)$this->recvWindow;
-        if (strtoupper($method) === 'GET') {
-            $query = $this->buildQuery($params);
-            $toSign = $ts . $this->apiKey . $recv . $query;
-        } else {
-            $body = $this->jsonBody($params);
-            $toSign = $ts . $this->apiKey . $recv . $body;
-        }
+        $toSign = $ts . $this->apiKey . $recv . $payload;
         $sign = $this->signString($toSign);
         $headers = [
             'X-BAPI-API-KEY' => $this->apiKey,
             'X-BAPI-TIMESTAMP' => $ts,
             'X-BAPI-RECV-WINDOW' => $recv,
             'X-BAPI-SIGN' => $sign,
-            'User-Agent' => 'bybit-php/1.0.0',
-            'X-Referer' => 'bybit-php',
+            'X-BAPI-SIGN-TYPE' => '2',
+            'User-Agent' => 'bybit-php',
         ];
-        if ($this->signature === 'hmac') {
-            $headers['X-BAPI-SIGN-TYPE'] = '2';
+        if ($this->brokerId !== null) {
+            $headers['X-Referer'] = $this->brokerId;
         }
         if (strtoupper($method) !== 'GET') {
             $headers['Content-Type'] = 'application/json';
@@ -115,28 +147,61 @@ class BybitClient
     protected function buildQuery(array $params): string
     {
         if (!$params) return '';
+        ksort($params);
         return http_build_query($params, '', '&', PHP_QUERY_RFC3986);
     }
 
     protected function jsonBody(array $params): string
     {
-        return $params ? json_encode($params, JSON_UNESCAPED_SLASHES) : '{}';
+        return $params ? json_encode($params, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) : '{}';
     }
 
     public function request(string $method, string $path, array $params = [], array $options = []): array
     {
         $method = strtoupper($method);
         $this->rateLimit($method);
-        $headers = $this->headers($method, $path, $params);
-        $opts = [RequestOptions::HEADERS => $headers];
-        if ($method === 'GET') {
-            if ($params) $opts[RequestOptions::QUERY] = $params;
-        } else {
-            $opts[RequestOptions::JSON] = $params ?: new \stdClass();
+        $payload = $method === 'GET' ? $this->buildQuery($params) : $this->jsonBody($params);
+        $headers = $this->headers($method, $payload);
+
+        $customHeaders = $options[RequestOptions::HEADERS] ?? [];
+        if (!is_array($customHeaders)) {
+            throw new \InvalidArgumentException('Request headers must be an array.');
         }
-        if ($options) $opts = array_replace_recursive($opts, $options);
+        $protectedHeaders = array_map('strtolower', array_keys($headers));
+        $customHeaders = array_filter(
+            $customHeaders,
+            static function ($value, $name) use ($protectedHeaders): bool {
+                return !in_array(strtolower((string)$name), $protectedHeaders, true);
+            },
+            ARRAY_FILTER_USE_BOTH
+        );
+
+        unset(
+            $options[RequestOptions::HEADERS],
+            $options[RequestOptions::QUERY],
+            $options[RequestOptions::JSON],
+            $options[RequestOptions::BODY],
+            $options[RequestOptions::FORM_PARAMS],
+            $options[RequestOptions::MULTIPART],
+            $options[RequestOptions::HTTP_ERRORS]
+        );
+
+        $opts = $options;
+        $opts[RequestOptions::HEADERS] = array_replace($customHeaders, $headers);
+        $opts[RequestOptions::HTTP_ERRORS] = false;
+        if ($method === 'GET') {
+            if ($payload !== '') {
+                $path .= (strpos($path, '?') === false ? '?' : '&') . $payload;
+            }
+        } else {
+            $opts[RequestOptions::BODY] = $payload;
+        }
         $res = $this->http->request($method, $path, $opts);
         $body = (string)$res->getBody();
+        $statusCode = $res->getStatusCode();
+        if ($statusCode < 200 || $statusCode >= 300) {
+            throw new BybitHttpException($statusCode, $res->getReasonPhrase(), $body);
+        }
         $data = json_decode($body, true);
         if (!is_array($data)) {
             return ['raw' => $body];
@@ -226,6 +291,21 @@ class BybitClient
         return $this->request('POST', '/v5/order/create', $params);
     }
 
+    public function batchCreateOrders(array $params): array
+    {
+        return $this->request('POST', '/v5/order/create-batch', $params);
+    }
+
+    public function batchAmendOrders(array $params): array
+    {
+        return $this->request('POST', '/v5/order/amend-batch', $params);
+    }
+
+    public function batchCancelOrders(array $params): array
+    {
+        return $this->request('POST', '/v5/order/cancel-batch', $params);
+    }
+
     public function getOpenOrders(array $params): array
     {
         return $this->request('GET', '/v5/order/realtime', $params);
@@ -251,6 +331,11 @@ class BybitClient
         return $this->request('GET', '/v5/order/history', $params);
     }
 
+    public function getTradeHistory(array $params): array
+    {
+        return $this->request('GET', '/v5/execution/list', $params);
+    }
+
     public function getWalletBalance(array $params): array
     {
         return $this->request('GET', '/v5/account/wallet-balance', $params);
@@ -258,7 +343,12 @@ class BybitClient
 
     public function getTransferableAmount(array $params): array
     {
-        return $this->request('GET', '/v5/account/transferable-coin', $params);
+        return $this->request('GET', '/v5/account/transferable-amount', $params);
+    }
+
+    public function getTransferableCoins(array $params): array
+    {
+        return $this->request('GET', '/v5/asset/transfer/query-transfer-coin-list', $params);
     }
 
     public function getTransactionLog(array $params): array
@@ -273,7 +363,37 @@ class BybitClient
 
     public function getAccountInstrumentsInfo(array $params): array
     {
-        return $this->request('GET', '/v5/account/contract-info', $params);
+        return $this->request('GET', '/v5/account/instruments-info', $params);
+    }
+
+    public function getBorrowHistory(array $params): array
+    {
+        return $this->request('GET', '/v5/account/borrow-history', $params);
+    }
+
+    public function setCollateralCoin(array $params): array
+    {
+        return $this->request('POST', '/v5/account/set-collateral-switch', $params);
+    }
+
+    public function getCollateralInfo(array $params = []): array
+    {
+        return $this->request('GET', '/v5/account/collateral-info', $params);
+    }
+
+    public function getCoinGreeks(array $params = []): array
+    {
+        return $this->request('GET', '/v5/asset/coin-greeks', $params);
+    }
+
+    public function setMarginMode(array $params): array
+    {
+        return $this->request('POST', '/v5/account/set-margin-mode', $params);
+    }
+
+    public function setSpotHedging(array $params): array
+    {
+        return $this->request('POST', '/v5/account/set-hedging-mode', $params);
     }
 
     public function getPositions(array $params): array
@@ -293,14 +413,20 @@ class BybitClient
 
     public function setLeverage(string $category, string $symbol, float $leverage, ?string $side = null): array
     {
+        if ($leverage <= 0) {
+            throw new \InvalidArgumentException('Leverage must be greater than zero.');
+        }
         $payload = ['category' => $category, 'symbol' => $symbol];
-        if ($side === 'Buy') {
-            $payload['buyLeverage'] = (string)$leverage;
-        } elseif ($side === 'Sell') {
-            $payload['sellLeverage'] = (string)$leverage;
+        $leverageValue = rtrim(rtrim(number_format($leverage, 8, '.', ''), '0'), '.');
+        if ($side !== null && strcasecmp($side, 'Buy') === 0) {
+            $payload['buyLeverage'] = $leverageValue;
+        } elseif ($side !== null && strcasecmp($side, 'Sell') === 0) {
+            $payload['sellLeverage'] = $leverageValue;
+        } elseif ($side !== null) {
+            throw new \InvalidArgumentException('Side must be Buy or Sell.');
         } else {
-            $payload['buyLeverage'] = (string)$leverage;
-            $payload['sellLeverage'] = (string)$leverage;
+            $payload['buyLeverage'] = $leverageValue;
+            $payload['sellLeverage'] = $leverageValue;
         }
         return $this->request('POST', '/v5/position/set-leverage', $payload);
     }
@@ -340,6 +466,31 @@ class BybitClient
         return $this->request('POST', '/v5/position/confirm-pending-mmr', $params);
     }
 
+    public function getDeliveryRecord(array $params): array
+    {
+        return $this->request('GET', '/v5/asset/delivery-record', $params);
+    }
+
+    public function getUSDCSettlement(array $params): array
+    {
+        return $this->request('GET', '/v5/asset/settlement-record', $params);
+    }
+
+    public function toggleMarginTrade(array $params): array
+    {
+        return $this->request('POST', '/v5/spot-margin-trade/switch-mode', $params);
+    }
+
+    public function setSpotMarginLeverage(array $params): array
+    {
+        return $this->request('POST', '/v5/spot-margin-trade/set-leverage', $params);
+    }
+
+    public function getSpotMarginStatus(array $params = []): array
+    {
+        return $this->request('GET', '/v5/spot-margin-uta/status', $params);
+    }
+
     protected function lastPrice(string $symbol, string $category): ?float
     {
         $res = $this->getTickers(['category' => $category, 'symbol' => $symbol]);
@@ -366,35 +517,63 @@ class BybitClient
         array $extra = []
     ): array
     {
-        $isSpot = strtolower($type) === 'spot';
+        $type = strtolower(trim($type));
+        $execution = strtolower(trim($execution));
+        if (!in_array($type, ['spot', 'derivatives'], true)) {
+            throw new \InvalidArgumentException('Order type must be spot or derivatives.');
+        }
+        if (!in_array($execution, ['market', 'limit', 'trigger'], true)) {
+            throw new \InvalidArgumentException('Execution must be market, limit, or trigger.');
+        }
+        if ($size <= 0) {
+            throw new \InvalidArgumentException('Order size must be greater than zero.');
+        }
+        if (($execution === 'limit' || $execution === 'trigger') && ($price === null || $price <= 0)) {
+            throw new \InvalidArgumentException('Limit and trigger orders require a positive price.');
+        }
+        if ($leverage !== null && $leverage <= 0) {
+            throw new \InvalidArgumentException('Leverage must be greater than zero.');
+        }
+
+        $side = $side === null ? 'Buy' : ucfirst(strtolower($side));
+        if (!in_array($side, ['Buy', 'Sell'], true)) {
+            throw new \InvalidArgumentException('Side must be Buy or Sell.');
+        }
+
+        $isSpot = $type === 'spot';
         $category = $isSpot ? 'spot' : 'linear';
-        $orderType = strtolower($execution) === 'market' ? 'Market' : 'Limit';
+        $orderType = $execution === 'market' ? 'Market' : 'Limit';
         $payload = ['category' => $category, 'symbol' => $symbol];
         if ($isSpot) {
-            $payload['side'] = $side ?: 'Buy';
+            $payload['side'] = $side;
             $payload['orderType'] = $orderType;
-            if ($orderType === 'Limit' && $price) $payload['price'] = (string)$price;
+            if ($orderType === 'Limit') $payload['price'] = (string)$price;
             $payload['qty'] = (string)$size;
-            if ($orderType === 'Market' && ($side === 'Buy' || $side === null)) {
+            if ($orderType === 'Market' && $side === 'Buy') {
                 $payload['marketUnit'] = $extra['marketUnit'] ?? 'quoteCoin';
             }
         } else {
-            if (!$side) $side = 'Buy';
             $payload['side'] = $side;
             $payload['orderType'] = $orderType;
-            $entryPrice = $orderType === 'Limit' && $price ? $price : ($this->lastPrice($symbol, $category) ?? ($price ?? 0.0));
-            if ($leverage && $leverage > 0) $this->setLeverage($category, $symbol, $leverage, $side);
-            $qty = $orderType === 'Market' && !$price ? $this->qtyFromMargin($size, max($entryPrice, 0.0000001), max($leverage ?? 1.0, 1.0)) : $this->qtyFromMargin($size, max($entryPrice, 0.0000001), max($leverage ?? 1.0, 1.0));
+            $entryPrice = $orderType === 'Limit' ? $price : $this->lastPrice($symbol, $category);
+            if ($entryPrice === null || $entryPrice <= 0) {
+                throw new \RuntimeException('Unable to determine a positive market price for the derivative order.');
+            }
+            if ($leverage !== null) $this->setLeverage($category, $symbol, $leverage, $side);
+            $qty = $this->qtyFromMargin($size, $entryPrice, $leverage ?? 1.0);
             $payload['qty'] = (string)$qty;
-            if ($orderType === 'Limit' && $price) $payload['price'] = (string)$price;
+            if ($orderType === 'Limit') $payload['price'] = (string)$price;
             $payload['positionIdx'] = 0;
         }
-        if (strtolower($execution) === 'trigger') {
+        if ($execution === 'trigger') {
             $payload['orderType'] = 'Market';
-            if ($price) $payload['triggerPrice'] = (string)$price;
+            $payload['triggerPrice'] = (string)$price;
             $triggerDir = $extra['triggerDirection'] ?? null;
             if ($triggerDir === null) {
-                $currentPrice = $this->lastPrice($symbol, $category) ?? 0;
+                $currentPrice = $this->lastPrice($symbol, $category);
+                if ($currentPrice === null || $currentPrice <= 0) {
+                    throw new \RuntimeException('Unable to determine the current price for the trigger direction.');
+                }
                 $triggerDir = ($price > $currentPrice) ? 1 : 2;
             }
             $payload['triggerDirection'] = (int)$triggerDir;
@@ -418,12 +597,38 @@ class BybitClient
 
     public function requestDemoFunds(array $params): array
     {
+        $this->assertDemoTrading();
         return $this->request('POST', '/v5/account/demo-apply-money', $params);
     }
 
     public function createDemoAccount(): array
     {
+        $this->assertProductionMainnet();
         return $this->request('POST', '/v5/user/create-demo-member');
+    }
+
+    public function createDemoApiKey(string $demoUid, array $params = []): array
+    {
+        $this->assertProductionMainnet();
+        $params['subuid'] = $demoUid;
+        return $this->request('POST', '/v5/user/create-sub-api', $params);
+    }
+
+    public function updateDemoApiKey(array $params): array
+    {
+        $this->assertProductionMainnet();
+        return $this->request('POST', '/v5/user/update-sub-api', $params);
+    }
+
+    public function getApiKeyInfo(): array
+    {
+        return $this->request('GET', '/v5/user/query-api');
+    }
+
+    public function deleteDemoApiKey(array $params): array
+    {
+        $this->assertProductionMainnet();
+        return $this->request('POST', '/v5/user/delete-sub-api', $params);
     }
 
     public function computeFee(string $type, float $volume, string $level = 'Non-VIP', string $liquidity = 'taker'): float
@@ -432,5 +637,19 @@ class BybitClient
         $levelKey = $level;
         $rate = $this->fees[$type][$levelKey][$liquidity] ?? $this->fees[$type]['Non-VIP'][$liquidity] ?? 0.0;
         return $volume * $rate;
+    }
+
+    private function assertDemoTrading(): void
+    {
+        if (!$this->demoTrading) {
+            throw new \LogicException('Demo funds can only be requested with a Demo Trading client.');
+        }
+    }
+
+    private function assertProductionMainnet(): void
+    {
+        if ($this->baseUri() !== 'https://api.bybit.com') {
+            throw new \LogicException('This operation requires a global production client (api.bybit.com).');
+        }
     }
 }

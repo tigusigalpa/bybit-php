@@ -1,6 +1,6 @@
-<div align="center">
+# Bybit PHP/Laravel Client/SDK/Library
 
-# Bybit PHP SDK
+![ByBit PHP/Laravel SDK](https://i.postimg.cc/wTK7XM5Z/bybit-php-laravel-banner.jpg)
 
 ### V5 API Client for PHP & Laravel
 
@@ -8,8 +8,11 @@
 [![Laravel](https://img.shields.io/badge/Laravel-8%20%7C%209%20%7C%2010%20%7C%2011%20%7C%2012%20%7C%2013-red.svg)](https://laravel.com)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![WebSocket](https://img.shields.io/badge/WebSocket-Supported-brightgreen.svg)](https://bybit-exchange.github.io/docs/v5/ws/connect)
-
-![ByBit PHP SDK](https://i.postimg.cc/T3PpqGyn/bybit-php-banner-v2.jpg)
+[![Tests](https://github.com/tigusigalpa/bybit-php/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/tests.yml)
+[![Coverage](https://github.com/tigusigalpa/bybit-php/actions/workflows/coverage.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/coverage.yml)
+[![CodeQL](https://github.com/tigusigalpa/bybit-php/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/codeql.yml)
+[![Scorecard](https://github.com/tigusigalpa/bybit-php/actions/workflows/scorecard.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/bybit-php/actions/workflows/scorecard.yml)
+[![Codecov](https://codecov.io/gh/tigusigalpa/bybit-php/graph/badge.svg)](https://codecov.io/gh/tigusigalpa/bybit-php)
 
 **Language:** English | [Русский](README-ru.md)
 
@@ -20,20 +23,18 @@ Laravel.
 
 [Features](#features) • [Installation](#installation) • [Quick Start](#quick-start) • [API Methods](#api-methods) • [TradFi](#tradfi) • [WebSocket](#websocket-streaming) • [Examples](#examples)
 
-</div>
-
 ---
 
 ## Features
 
-- Full Bybit V5 API coverage (spot, linear, inverse, options)
+- Core Bybit V5 REST coverage for spot, linear, inverse, options, and the officially supported Demo Trading endpoints
 - **TradFi support** — gold, silver, forex, stock CFDs, and indices via `BybitTradFi`
 - HMAC-SHA256 and RSA-SHA256 signatures
 - WebSocket for real-time data (orderbook, trades, klines, account updates)
 - Testnet and demo trading support
-- Regional endpoints (NL, TR, KZ, GE, AE)
+- Regional endpoints (NL, TR, KZ, GE, AE, EU, ID, JP, HK)
 - Laravel integration (facade, service provider, config publishing)
-- Automatic reconnection for WebSocket
+- WebSocket heartbeat, subscription management, and explicit connection lifecycle
 
 ---
 
@@ -92,6 +93,10 @@ BYBIT_DEMO_TRADING=false
 BYBIT_REGION=global
 BYBIT_RECV_WINDOW=5000
 BYBIT_SIGNATURE=hmac
+# Optional: required only for Bybit broker applications
+BYBIT_BROKER_ID=
+# Set true when resolving the Laravel WebSocket facade as a private stream
+BYBIT_WEBSOCKET_PRIVATE=false
 
 # For RSA signature (optional):
 # BYBIT_SIGNATURE=rsa
@@ -106,16 +111,22 @@ BYBIT_SIGNATURE=hmac
 | `BYBIT_API_SECRET`      | string  | -        | Your Bybit API secret key                                  |
 | `BYBIT_TESTNET`         | boolean | `false`  | Enable testnet environment                                 |
 | `BYBIT_DEMO_TRADING`    | boolean | `false`  | Enable demo trading environment                            |
-| `BYBIT_REGION`          | string  | `global` | Regional endpoint (`global`, `nl`, `tr`, `kz`, `ge`, `ae`) |
+| `BYBIT_REGION`          | string  | `global` | Regional endpoint (`global`, `nl`, `tr`, `kz`, `ge`, `ae`, `eu`, `id`, `jp`, `hk`) |
 | `BYBIT_RECV_WINDOW`     | integer | `5000`   | Request receive window (ms)                                |
 | `BYBIT_SIGNATURE`       | string  | `hmac`   | Signature type (`hmac` or `rsa`)                           |
 | `BYBIT_RSA_PRIVATE_KEY` | string  | `null`   | RSA private key (PEM format)                               |
+| `BYBIT_BROKER_ID`       | string  | `null`   | Broker ID sent as `X-Referer`; leave empty for non-broker keys |
+| `BYBIT_WEBSOCKET_PRIVATE` | boolean | `false` | Create the Laravel WebSocket singleton as a private stream |
+
+`BYBIT_TESTNET` and `BYBIT_DEMO_TRADING` are mutually exclusive. Demo Trading uses API keys created in a production account's Demo Trading area; Testnet requires Testnet keys.
 
 ---
 
 ## Quick Start
 
 ### Pure PHP Usage
+
+> The constructor examples below use PHP 8 named arguments. On PHP 7.4, pass the same values positionally.
 
 ```php
 <?php
@@ -343,6 +354,16 @@ $history = $client->getHistoryOrders([
     'symbol' => 'BTCUSDT',
     'limit' => 50
 ]);
+
+// Batch endpoints are available for linear and option orders
+$batch = $client->batchCreateOrders([
+    'category' => 'linear',
+    'request' => [[
+        'symbol' => 'BTCUSDT', 'side' => 'Buy', 'orderType' => 'Limit',
+        'qty' => '0.01', 'price' => '30000', 'timeInForce' => 'GTC',
+    ]],
+]);
+$executions = $client->getTradeHistory(['category' => 'linear', 'symbol' => 'BTCUSDT']);
 ```
 
 ### Position Management
@@ -447,6 +468,12 @@ $transferable = $client->getTransferableAmount([
     'coin' => 'USDT'
 ]);
 
+// List coins that can be transferred between account types
+$transferableCoins = $client->getTransferableCoins([
+    'fromAccountType' => 'UNIFIED',
+    'toAccountType' => 'FUND',
+]);
+
 // Get transaction log
 $transactions = $client->getTransactionLog([
     'accountType' => 'UNIFIED',
@@ -465,11 +492,14 @@ $instrumentsInfo = $client->getAccountInstrumentsInfo([
 
 // Calculate trading fee
 $fee = $client->computeFee('spot', 1000.0, 'Non-VIP', 'taker');
+
+// Further account helpers: getBorrowHistory(), getCollateralInfo(),
+// setCollateralCoin(), getCoinGreeks(), setMarginMode(), setSpotHedging()
 ```
 
 ### Demo Trading
 
-Demo trading — тестирование стратегий без риска. Используется домен `api-demo.bybit.com`.
+Demo Trading is an isolated, limited-function environment at `api-demo.bybit.com`. Use a production account's Demo Trading API key, never combine it with Testnet, and expect Demo orders to be retained for seven days.
 
 ```php
 // Initialize demo trading client
@@ -489,7 +519,7 @@ $demoClient = new BybitClient(
 // Create demo account (use production API key with api.bybit.com)
 $productionClient = new BybitClient('prod_key', 'prod_secret');
 $demoAccount = $productionClient->createDemoAccount();
-// Returns: ['uid' => '123456789', ...]
+// Returns: ['subMemberId' => '123456789', ...]
 
 // Request demo funds (use demo API key with api-demo.bybit.com)
 $fundingResult = $demoClient->requestDemoFunds([
@@ -500,7 +530,7 @@ $fundingResult = $demoClient->requestDemoFunds([
     ]
 ]);
 
-// All trading methods work the same in demo mode
+// Supported trading methods use the same V5 payloads in demo mode
 $order = $demoClient->createOrder([
     'category' => 'linear',
     'symbol' => 'BTCUSDT',
@@ -509,6 +539,8 @@ $order = $demoClient->createOrder([
     'qty' => '0.01'
 ]);
 ```
+
+For Demo Trading, REST market endpoints and private WebSocket streams use the demo domain. Public WebSocket market data is identical to mainnet and uses `stream.bybit.com`; WebSocket order entry is unavailable in Demo Trading.
 
 **Laravel Demo Trading:**
 
@@ -834,10 +866,14 @@ $feeDeriv = $client->computeFee('derivatives', $volume, 'VIP1', 'maker');
 |------------------|----------|---------------------------------|
 | 🌐 Global        | `global` | `https://api.bybit.com`         |
 | 🇳🇱 Netherlands | `nl`     | `https://api.bybit.nl`          |
-| 🇹🇷 Turkey      | `tr`     | `https://api.bybit-tr.com`      |
+| 🇹🇷 Turkey      | `tr`     | `https://api.bybit.tr`          |
 | 🇰🇿 Kazakhstan  | `kz`     | `https://api.bybit.kz`          |
 | 🇬🇪 Georgia     | `ge`     | `https://api.bybitgeorgia.ge`   |
 | 🇦🇪 UAE         | `ae`     | `https://api.bybit.ae`          |
+| 🇪🇺 EEA (REST only) | `eu` | `https://api.bybit.eu`          |
+| 🇮🇩 Indonesia   | `id`     | `https://api.bybit.id`          |
+| 🇯🇵 Japan       | `jp`     | `https://api.manepa.jp`         |
+| 🇭🇰 Hong Kong   | `hk`     | `https://api.spark-fintech.com` |
 | 🧪 Testnet       | -        | `https://api-testnet.bybit.com` |
 
 ---

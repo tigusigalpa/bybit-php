@@ -17,6 +17,9 @@
       "Tigusigalpa\\ByBit\\": "src/"
     }
   },
+  "scripts": {
+    "test": "@php tests/run.php"
+  },
   "extra": {
     "laravel": {
       "providers": [

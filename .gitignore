@@ -6,6 +6,7 @@ composer.lock
 /phpunit.xml
 /.phpunit.result.cache
 /coverage/
+/coverage.xml
 /.phpunit.cache
 
 # IDE

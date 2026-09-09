@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+### Fixed
+- Signed REST requests now send the exact canonical query string or JSON body that was used to calculate the signature.
+- Corrected V5 routes for transferable amount and account instruments info.
+- Corrected Turkey REST/WebSocket domains and added current regional domains for EU, Indonesia, Japan, and Hong Kong.
+- Fixed TradFi GOOGL ticker, multi-ticker aggregation, stock filtering, and paginated instruments lookup.
+
+### Added
+- Batch order, execution history, account, asset, spot-margin, and demo-account helper methods aligned with currently supported Demo Trading endpoints.
+- Demo Trading and RSA support for private WebSocket streams; the Laravel WebSocket singleton can now be configured as private.
+- Optional broker ID configuration, typed HTTP exceptions, and a dependency-free signed-request test suite.
+- GitHub Actions workflows for PHP test matrices, Xdebug coverage and Codecov, CodeQL, OpenSSF Scorecard, and Dependabot updates.
+
+### Changed
+- Testnet and Demo Trading are now explicitly mutually exclusive.
+- `X-Referer` is emitted only when a broker ID is configured, per Bybit's broker guidance.
+
 ## 1.2.1 - 2026-04-13
 ### Added
 - Laravel 13 support

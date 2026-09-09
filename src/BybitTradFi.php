@@ -28,7 +28,7 @@ class BybitTradFi
     public const FOREX_MINORS = ['EURGBP', 'EURJPY', 'GBPJPY', 'EURCHF', 'AUDCAD', 'AUDNZD', 'CADJPY'];
 
     /** @var string[] US stock CFDs */
-    public const US_STOCKS = ['AAPLUSDT', 'AMZNUSDT', 'TSLAUSDT', 'GOOGLSDT', 'MSFTUSDT', 'METAUSDT', 'NVDAUSDT', 'NFLXUSDT'];
+    public const US_STOCKS = ['AAPLUSDT', 'AMZNUSDT', 'TSLAUSDT', 'GOOGLUSDT', 'MSFTUSDT', 'METAUSDT', 'NVDAUSDT', 'NFLXUSDT'];
 
     /** @var string[] Major index CFDs */
     public const INDICES = ['US30USD', 'US100USD', 'US500USD', 'UK100USD', 'DE40USD', 'JP225USD'];
@@ -56,9 +56,30 @@ class BybitTradFi
      */
     public function getInstruments(string $assetClass = ''): array
     {
-        $result = $this->client->request('GET', '/v5/market/instruments-info', [
-            'category' => self::CATEGORY,
-        ]);
+        $params = ['category' => self::CATEGORY, 'limit' => 1000];
+        $list = [];
+        $seenCursors = [];
+        $result = [];
+
+        do {
+            $result = $this->client->request('GET', '/v5/market/instruments-info', $params);
+            $page = $result['result']['list'] ?? [];
+            if (!is_array($page)) {
+                break;
+            }
+            $list = array_merge($list, $page);
+            $cursor = (string)($result['result']['nextPageCursor'] ?? '');
+            if ($cursor === '' || isset($seenCursors[$cursor])) {
+                break;
+            }
+            $seenCursors[$cursor] = true;
+            $params['cursor'] = $cursor;
+        } while (true);
+
+        if ($result !== []) {
+            $result['result']['list'] = $list;
+            $result['result']['nextPageCursor'] = '';
+        }
 
         if ($assetClass === '') {
             return $result;
@@ -84,11 +105,30 @@ class BybitTradFi
      */
     public function getTickers(array $symbols = []): array
     {
+        if ($symbols === []) {
+            return $this->client->getTickers(['category' => self::CATEGORY]);
+        }
         if (count($symbols) === 1) {
             return $this->getTicker($symbols[0]);
         }
 
-        return $this->client->getTickers(['category' => self::CATEGORY]);
+        $combined = null;
+        $list = [];
+        foreach ($symbols as $symbol) {
+            $response = $this->getTicker($symbol);
+            if (($response['retCode'] ?? 0) !== 0) {
+                return $response;
+            }
+            if ($combined === null) {
+                $combined = $response;
+            }
+            $list = array_merge($list, $response['result']['list'] ?? []);
+        }
+
+        $combined = $combined ?? ['retCode' => 0, 'retMsg' => 'OK', 'result' => []];
+        $combined['result']['category'] = self::CATEGORY;
+        $combined['result']['list'] = $list;
+        return $combined;
     }
 
     /**
@@ -217,6 +257,21 @@ class BybitTradFi
         ?string $price = null,
         array   $extra = []
     ): array {
+        $side = ucfirst(strtolower($side));
+        $orderType = ucfirst(strtolower($orderType));
+        if (!in_array($side, ['Buy', 'Sell'], true)) {
+            throw new \InvalidArgumentException('Side must be Buy or Sell.');
+        }
+        if (!in_array($orderType, ['Market', 'Limit'], true)) {
+            throw new \InvalidArgumentException('Order type must be Market or Limit.');
+        }
+        if ($qty === '') {
+            throw new \InvalidArgumentException('Order quantity is required.');
+        }
+        if ($orderType === 'Limit' && ($price === null || $price === '')) {
+            throw new \InvalidArgumentException('A limit order requires a price.');
+        }
+
         $payload = [
             'category'    => self::CATEGORY,
             'symbol'      => $symbol,
@@ -257,7 +312,14 @@ class BybitTradFi
      */
     public function closePosition(string $symbol, string $side, string $qty, int $positionIdx = 0): array
     {
-        $closeSide = strtoupper($side) === 'BUY' ? 'Sell' : 'Buy';
+        $side = strtoupper($side);
+        if (!in_array($side, ['BUY', 'SELL', 'LONG', 'SHORT'], true)) {
+            throw new \InvalidArgumentException('Position side must be Buy, Sell, Long, or Short.');
+        }
+        if ($qty === '') {
+            throw new \InvalidArgumentException('Close quantity is required.');
+        }
+        $closeSide = in_array($side, ['BUY', 'LONG'], true) ? 'Sell' : 'Buy';
 
         return $this->client->createOrder([
             'category'    => self::CATEGORY,
@@ -284,6 +346,9 @@ class BybitTradFi
      */
     public function cancelOrder(string $symbol, string $orderId = '', string $orderLinkId = ''): array
     {
+        if ($orderId === '' && $orderLinkId === '') {
+            throw new \InvalidArgumentException('Provide either an order ID or an order link ID.');
+        }
         $payload = [
             'category' => self::CATEGORY,
             'symbol'   => $symbol,
@@ -409,7 +474,7 @@ class BybitTradFi
 
                 case 'stock':
                     $match = substr($symbol, -4) === 'USDT'
-                          && strlen($symbol) > 8
+                          && strlen($symbol) >= 8
                           && !self::isTradFiSymbol(substr($symbol, 0, -4));
                     break;
 

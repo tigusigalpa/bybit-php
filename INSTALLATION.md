@@ -4,7 +4,7 @@
 
 - PHP 7.4 or higher
 - Composer
-- Laravel 8-12 (for Laravel integration)
+- Laravel 8-13 (for Laravel integration)
 
 ## Installation Steps
 
@@ -45,9 +45,12 @@ Add the following to your `.env` file:
 BYBIT_API_KEY=your_api_key_here
 BYBIT_API_SECRET=your_api_secret_here
 BYBIT_TESTNET=true
+BYBIT_DEMO_TRADING=false
 BYBIT_REGION=global
 BYBIT_RECV_WINDOW=5000
 BYBIT_SIGNATURE=hmac
+BYBIT_BROKER_ID=
+BYBIT_WEBSOCKET_PRIVATE=false
 ```
 
 #### Environment Variables Explained
@@ -55,9 +58,12 @@ BYBIT_SIGNATURE=hmac
 - **BYBIT_API_KEY**: Your Bybit API public key
 - **BYBIT_API_SECRET**: Your Bybit API secret key
 - **BYBIT_TESTNET**: Set to `true` for testnet, `false` for mainnet
-- **BYBIT_REGION**: Regional endpoint (`global`, `nl`, `tr`, `kz`, `ge`, `ae`)
+- **BYBIT_DEMO_TRADING**: Set to `true` for Demo Trading; do not enable it with Testnet
+- **BYBIT_REGION**: Regional endpoint (`global`, `nl`, `tr`, `kz`, `ge`, `ae`, `eu`, `id`, `jp`, `hk`)
 - **BYBIT_RECV_WINDOW**: Request receive window in milliseconds (default: 5000)
 - **BYBIT_SIGNATURE**: Signature type (`hmac` or `rsa`)
+- **BYBIT_BROKER_ID**: Optional broker ID, sent as `X-Referer`
+- **BYBIT_WEBSOCKET_PRIVATE**: Whether the Laravel WebSocket facade uses private streams
 
 For RSA signature (optional):
 ```env
@@ -98,10 +104,14 @@ Choose the appropriate region based on your location:
 
 - **Global**: `global` (default) - https://api.bybit.com
 - **Netherlands**: `nl` - https://api.bybit.nl
-- **Turkey**: `tr` - https://api.bybit-tr.com
+- **Turkey**: `tr` - https://api.bybit.tr
 - **Kazakhstan**: `kz` - https://api.bybit.kz
 - **Georgia**: `ge` - https://api.bybitgeorgia.ge
 - **UAE**: `ae` - https://api.bybit.ae
+- **EEA (REST only)**: `eu` - https://api.bybit.eu
+- **Indonesia**: `id` - https://api.bybit.id
+- **Japan**: `jp` - https://api.manepa.jp
+- **Hong Kong**: `hk` - https://api.spark-fintech.com
 
 ## Testnet vs Mainnet
 
@@ -120,6 +130,15 @@ BYBIT_TESTNET=false
 - Uses production endpoints
 - Real trading with real funds
 - Ensure your code is thoroughly tested before using mainnet
+
+### Demo Trading
+```env
+BYBIT_TESTNET=false
+BYBIT_DEMO_TRADING=true
+```
+- Uses https://api-demo.bybit.com
+- Requires a Demo Trading key created from a production account
+- Do not enable with Testnet
 
 ## Next Steps
 
